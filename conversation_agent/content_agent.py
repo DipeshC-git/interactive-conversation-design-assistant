@@ -131,22 +131,38 @@ def _extract_multimedia(selected: list[dict]) -> dict:
 # ---------------------------------------------------------------------------
 
 def _mock_summary(selected: list[dict], intent: str, audience: str) -> str:
-    """Template summary for mock mode — concise, plain-language."""
+    """
+    Generate a plain-text insight sentence from the top chunk.
+    Strips JSON artifacts, code blocks, markdown, and URLs so only
+    readable prose remains.
+    """
     if not selected:
-        return "We searched our knowledge base but couldn't find a strong match for your query."
+        return "Review the sources below for more information."
     top = selected[0]
-    # Use snippet if available; otherwise take first 2 sentences of text
-    raw = top.get("snippet", top.get("text", ""))
-    # Strip any JSON artifacts from the text
-    import re as _re
-    raw = _re.sub(r'^\{"results":\[.*?"content":"', '', raw, flags=_re.S)
-    raw = _re.sub(r'"\}.*$', '', raw, flags=_re.S)
-    # Take first 150 clean chars
-    clean = raw.replace('\n', ' ').strip()[:150]
-    return (
-        f"Here's what we found for {audience}s: {clean} "
-        f"See the full details below."
-    )
+    text = top.get("text", top.get("snippet", ""))
+
+    # Remove fenced code blocks entirely
+    text = re.sub(r"```[\s\S]*?```", "", text)
+    # Strip markdown tables (lines containing | separators)
+    text = re.sub(r"\|[^\n]*\|", "", text)
+    # Strip JSON objects / arrays
+    text = re.sub(r"\{[^{}]{0,400}\}", "", text)
+    text = re.sub(r"\[[^\[\]]{0,200}\]", "", text)
+    # Strip markdown images and links
+    text = re.sub(r"!\[.*?\]\(.*?\)", "", text)
+    text = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", text)
+    # Strip headings, bold, inline code, bare URLs
+    text = re.sub(r"^#+\s+", "", text, flags=re.M)
+    text = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text)
+    text = re.sub(r"`[^`]+`", "", text)
+    text = re.sub(r"https?://\S+", "", text)
+    # Collapse whitespace
+    text = re.sub(r"\s+", " ", text).strip()
+
+    # Take the first 1-2 meaningful sentences
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if len(s.strip()) > 20]
+    summary = " ".join(sentences[:2]) if sentences else text[:200]
+    return summary[:300] if summary else "Review the sources below for more information."
 
 
 def _live_summary(selected: list[dict], intent: str, audience: str, model: object) -> str:
@@ -212,10 +228,12 @@ def _synthesize_content(
     multimedia: dict,
     watsonx_summary: str,
 ) -> str:
-    intent = intent_result.get("chosenIntent", "")
+    intent   = intent_result.get("chosenIntent", "")
     entities = intent_result.get("entities", [])
     iteration = input_obj.sessionStore.iterationCount
-    topic = ", ".join(entities[:2]) if entities else "your query"
+    # Use the actual user question as the topic label — far more readable
+    # than internal entity names like "azure, azure ad"
+    topic = input_obj.userInput.strip().rstrip("?")
 
     parts: list[str] = []
 
@@ -261,82 +279,184 @@ def _synthesize_content(
     return content
 
 
+def _extract_code_blocks(text: str) -> list[str]:
+    """Pull fenced code blocks out of MCP-returned markdown text."""
+    import re as _re
+    return _re.findall(r"```[\w]*\n[\s\S]*?```", text)
+
+
 def _build_steps(selected: list[dict], topic: str) -> str:
-    lines = [f"## Steps — {topic.title()}", ""]
-    # Extract numbered steps from chunk text
+    """
+    Build a numbered steps section from MCP text.
+    Extracts sentences that look like instructions (contain verbs like
+    'open', 'click', 'run', 'set', 'add', 'configure', 'install', 'create').
+    Falls back to raw sentences if no instruction-like sentences are found.
+    """
+    import re as _re
+    ACTION_RE = _re.compile(
+        r"\b(open|click|go to|navigate|select|set|add|configure|install|"
+        r"create|register|copy|paste|run|execute|enter|type|enable|disable|"
+        r"assign|grant|deploy|download|upload|save|apply|verify|check)\b",
+        _re.I,
+    )
+    lines = [f"## Steps — {topic}", ""]
     step_num = 1
-    for chunk in selected[:2]:
-        sentences = [s.strip() for s in chunk["text"].split(". ") if len(s.strip()) > 10]
-        for s in sentences[:3]:
+    for chunk in selected[:3]:
+        raw = chunk.get("text", "")
+        # Prefer sentences that contain action verbs
+        sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", raw) if len(s.strip()) > 15]
+        action_sents = [s for s in sentences if ACTION_RE.search(s)]
+        pool = action_sents if action_sents else sentences
+        for s in pool[:4]:
+            s = s.rstrip(".")
             lines.append(f"{step_num}. {s}.")
             step_num += 1
+        if step_num > 6:
+            break
+
     if step_num == 1:
-        lines.append("1. Review the documentation links in the Sources section below.")
-    lines.append("")
-    lines.append("**Prerequisites:** Access to the Azure portal and a registered app.")
-    lines.append("**Estimated time:** 15–30 minutes.")
-    lines.append("")
-    lines.append(
-        "> **Troubleshooting tip:** If you receive a 401 error, verify that the "
-        "redirect URI in your app registration exactly matches the one in your code."
-    )
+        lines.append("1. Open the documentation link in the Sources section below.")
+        lines.append("2. Follow the on-screen instructions for your environment.")
+
+    lines += [
+        "",
+        "**Prerequisites:** Access to the relevant portal and a registered application.",
+        "**Estimated time:** 15–30 minutes.",
+        "",
+        "> **Troubleshooting tip:** If you receive a 401 Unauthorized error, verify "
+        "that your redirect URI and client credentials match exactly what is registered.",
+    ]
     return "\n".join(lines)
 
 
 def _build_code_snippet(selected: list[dict], intent: str, entities: list[str]) -> str:
-    # Pick a pre-built minimal example based on intent
-    if "oauth" in intent or "oauth" in " ".join(entities):
-        code = (
-            "```javascript\n"
-            "// Required packages: @azure/msal-node (npm install @azure/msal-node)\n"
-            "// Security: store clientSecret in environment variables — never in source code.\n"
-            "const msal = require('@azure/msal-node');\n\n"
-            "const config = {\n"
-            "  auth: {\n"
-            "    clientId: process.env.CLIENT_ID,       // App registration client ID\n"
-            "    authority: 'https://login.microsoftonline.com/' + process.env.TENANT_ID,\n"
-            "    clientSecret: process.env.CLIENT_SECRET,  // ⚠ Keep this secret\n"
-            "  },\n"
-            "};\n\n"
-            "const cca = new msal.ConfidentialClientApplication(config);\n\n"
-            "// Exchange auth code for access token\n"
-            "async function getToken(authCode) {\n"
-            "  const tokenRequest = {\n"
-            "    code: authCode,\n"
-            "    scopes: ['User.Read'],\n"
-            "    redirectUri: process.env.REDIRECT_URI,\n"
-            "  };\n"
-            "  const response = await cca.acquireTokenByCode(tokenRequest);\n"
-            "  return response.accessToken;\n"
-            "}\n"
-            "```"
-        )
-    else:
-        # Generic snippet from top chunk
-        top_text = selected[0]["text"][:200] if selected else "// See documentation."
-        code = f"```\n// Example — adapt to your use case\n// {top_text}\n```"
+    """
+    Build a code section.
+    Priority:
+      1. Extract a real code block from MCP-returned text.
+      2. If the MCP text contains no fenced block, build a minimal annotated
+         example using the actual MCP content as context comments.
+    """
+    lines = ["## Code Example", ""]
 
-    lines = ["## Code Example", "", code, ""]
-    if selected:
-        link = (selected[0].get("links") or ["#"])[0] or "#"
-        lines.append(f"**Source:** [{selected[0]['file_path']}]({link})")
+    # 1 — look for a real fenced code block in any selected chunk
+    found_code = None
+    for chunk in selected:
+        blocks = _extract_code_blocks(chunk.get("text", ""))
+        if blocks:
+            found_code = blocks[0]
+            break
+
+    if found_code:
+        lines.append(found_code)
+    else:
+        # 2 — synthesise a minimal annotated example
+        # Use top chunk text as inline context so it reflects the real answer
+        ctx = ""
+        if selected:
+            ctx = selected[0].get("text", "")[:400]
+
+        # Detect language from entities
+        lang = "javascript"
+        ent_str = " ".join(entities).lower()
+        if "python" in ent_str:
+            lang = "python"
+        elif "typescript" in ent_str:
+            lang = "typescript"
+
+        if lang == "python":
+            lines.append(
+                f"```python\n"
+                f"# Required packages: msal (pip install msal)\n"
+                f"# Security: store secrets in environment variables.\n"
+                f"import os, msal\n\n"
+                f"# Context from MS Learn:\n"
+                + "\n".join(f"# {l}" for l in ctx.split(". ")[:4] if l.strip())
+                + f"\n\napp = msal.ConfidentialClientApplication(\n"
+                f"    os.environ['CLIENT_ID'],\n"
+                f"    authority='https://login.microsoftonline.com/' + os.environ['TENANT_ID'],\n"
+                f"    client_credential=os.environ['CLIENT_SECRET'],\n"
+                f")\nresult = app.acquire_token_for_client(scopes=['https://graph.microsoft.com/.default'])\nprint(result.get('access_token'))\n"
+                f"```"
+            )
+        else:
+            lines.append(
+                f"```{lang}\n"
+                f"// Required packages: @azure/msal-node (npm install @azure/msal-node)\n"
+                f"// Security: store clientSecret in environment variables — never in source code.\n"
+                + "\n".join(f"// {l}" for l in ctx.split(". ")[:4] if l.strip())
+                + f"\n\nconst msal = require('@azure/msal-node');\n"
+                f"const cca = new msal.ConfidentialClientApplication({{\n"
+                f"  auth: {{\n"
+                f"    clientId: process.env.CLIENT_ID,\n"
+                f"    authority: 'https://login.microsoftonline.com/' + process.env.TENANT_ID,\n"
+                f"    clientSecret: process.env.CLIENT_SECRET,\n"
+                f"  }},\n"
+                f"}});\n\n"
+                f"async function getToken(authCode) {{\n"
+                f"  const resp = await cca.acquireTokenByCode({{\n"
+                f"    code: authCode, scopes: ['User.Read'],\n"
+                f"    redirectUri: process.env.REDIRECT_URI,\n"
+                f"  }});\n"
+                f"  return resp.accessToken;\n"
+                f"}}\n"
+                f"```"
+            )
+
+    lines.append("")
+    # Append real source links from MCP
+    for chunk in selected[:2]:
+        link = (chunk.get("links") or ["#"])[0] or "#"
+        fp   = chunk.get("file_path", link)
+        if link != "#":
+            lines.append(f"**Source:** [{fp}]({link})")
     return "\n".join(lines)
 
 
 def _build_faq(selected: list[dict], topic: str) -> str:
-    lines = [f"## FAQ — {topic.title()}", ""]
-    for i, chunk in enumerate(selected[:3], 1):
-        snippet = chunk.get("snippet", chunk["text"][:100])
-        lines.append(f"**Q{i}: What does this cover?**")
-        lines.append(f"A: {snippet}")
+    """
+    Build an FAQ from the actual MCP content.
+    Generates question/answer pairs from the real retrieved text.
+    """
+    import re as _re
+    lines = [f"## FAQ — {topic}", ""]
+    q_templates = [
+        "What is {topic} and how does it work?",
+        "When should I use {topic}?",
+        "What are the key requirements for {topic}?",
+    ]
+    for i, chunk in enumerate(selected[:3]):
+        text = chunk.get("text", "").strip()
+        # Use first 2 sentences of the chunk as the answer
+        sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", text) if len(s.strip()) > 10]
+        answer = " ".join(sentences[:2]) if sentences else text[:200]
+        q = q_templates[i % len(q_templates)].format(topic=topic)
+        lines.append(f"**{q}**")
+        lines.append(f"{answer}")
         lines.append("")
     return "\n".join(lines)
 
 
 def _build_summary(selected: list[dict], topic: str) -> str:
-    lines = [f"## Summary — {topic.title()}", ""]
-    for chunk in selected[:2]:
-        lines.append(chunk["text"][:300])
+    """
+    Build a summary from the actual MCP content.
+    Uses full text of top chunks, lightly formatted.
+    """
+    import re as _re
+    lines = [f"## Summary — {topic}", ""]
+    for chunk in selected[:3]:
+        text = chunk.get("text", "").strip()
+        if not text:
+            continue
+        # Break into short paragraphs at sentence boundaries
+        sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", text) if len(s.strip()) > 10]
+        para = " ".join(sentences[:4])
+        lines.append(para)
+        # Link
+        link = (chunk.get("links") or ["#"])[0] or "#"
+        fp   = chunk.get("file_path", "")
+        if link != "#":
+            lines.append(f"[Read more: {fp}]({link})")
         lines.append("")
     return "\n".join(lines)
 
@@ -365,8 +485,9 @@ def _build_interactive_options(
     intent_result: dict,
     iteration: int,
 ) -> list[InteractiveOption]:
-    entities = intent_result.get("entities", [])
-    topic = ", ".join(entities[:2]) if entities else "this topic"
+    # Use a short form of the user's question as the topic for option labels
+    user_q = intent_result.get("_userInput", "this topic")
+    topic = user_q[:50] + ("…" if len(user_q) > 50 else "")
 
     options = [
         InteractiveOption(
@@ -478,13 +599,16 @@ class ContentAgent:
         fmt = _select_format(intent_result.get("chosenIntent", ""), input_obj.userFormatPreference)
         selected = _select_top_results(results, avg_score)
 
-        entities = intent_result.get("entities", [])
-        topic = ", ".join(entities[:2]) if entities else "your query"
+        # Use the actual user question as topic throughout — not internal entity names
+        topic = input_obj.userInput.strip().rstrip("?")
+        # Pass it into intent_result so _build_interactive_options can use it
+        intent_result["_userInput"] = topic
 
         # Low confidence path
         if not selected:
-            response_text = f"We're still looking for the best answer about {topic}. Try refining your search."
-            content = _low_confidence_response(refinements, topic)
+            short = topic[:60] + ("…" if len(topic) > 60 else "")
+            response_text = f"We couldn't find a confident answer for: \"{short}\". Try refining your search."
+            content = _low_confidence_response(refinements, short)
             validation = _run_validation(content, fmt, input_obj.maxLength)
             options = _build_interactive_options(intent_result, iteration)
             return {
@@ -505,9 +629,10 @@ class ContentAgent:
         )
         multimedia = _extract_multimedia(selected)
         content = _synthesize_content(selected, intent_result, input_obj, fmt, multimedia, watsonx_summary)
-        response_text = f"Here's what we found about {topic}."
+        short = topic[:60] + ("…" if len(topic) > 60 else "")
+        response_text = f"Here's what we found for: \"{short}\"."
         if iteration > 0:
-            response_text = f"Here's a refined result for {topic} — hope this is closer to what you need."
+            response_text = f"Refined result for: \"{short}\" — hope this is closer to what you need."
 
         validation = _run_validation(content, fmt, input_obj.maxLength)
         options = _build_interactive_options(intent_result, iteration)

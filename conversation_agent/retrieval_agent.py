@@ -235,30 +235,89 @@ def _call_search_code(query: str, session_id: str, language: str = "javascript")
     return _map_mcp_content(raw_items, query)
 
 
+def _clean_mcp_text(raw: str) -> tuple[str, list[str], list[str]]:
+    """
+    Clean a single MCP text item.
+
+    MCP sometimes returns a JSON envelope like:
+      {"results":[{"description":"...","codeSnippet":"...","url":"..."}]}
+    or a plain markdown string.
+
+    Returns (clean_text, urls, images).
+    """
+    import re as _re
+    import json as _json
+
+    urls: list[str] = []
+    images: list[str] = []
+    code_blocks: list[str] = []
+
+    # ── Try to parse as a JSON envelope first ────────────────────────────────
+    stripped = raw.strip()
+    if stripped.startswith("{") or stripped.startswith("["):
+        try:
+            obj = _json.loads(stripped)
+            parts: list[str] = []
+            # Flatten all string values we care about
+            items = obj.get("results", [obj]) if isinstance(obj, dict) else obj
+            for item in (items if isinstance(items, list) else [items]):
+                if not isinstance(item, dict):
+                    continue
+                for key in ("description", "summary", "text", "content"):
+                    v = item.get(key, "")
+                    if isinstance(v, str) and v.strip():
+                        parts.append(v.strip())
+                # Collect code snippets — store separately, will be prepended
+                cs = item.get("codeSnippet", item.get("code", ""))
+                if cs:
+                    lang = item.get("language", "")
+                    code_blocks.append(f"```{lang}\n{cs.strip()}\n```")
+                # Collect URLs
+                for key in ("url", "link", "href"):
+                    u = item.get(key, "")
+                    if isinstance(u, str) and u.startswith("http"):
+                        urls.append(u)
+            raw = "\n\n".join(parts)
+        except Exception:
+            pass  # not valid JSON — treat as markdown
+
+    # ── Now treat as markdown ─────────────────────────────────────────────────
+    # Extract URLs
+    urls += _re.findall(r"https?://learn\.microsoft\.com/[^\s\)\"'<>]+", raw)
+    # Extract image URLs
+    images = _re.findall(r"https?://\S+\.(?:png|jpg|jpeg|gif|svg|webp)(?:\?\S*)?", raw, _re.I)
+    # Remove duplicate URLs
+    urls = list(dict.fromkeys(urls))
+
+    # Prepend any extracted code blocks to the text so _build_code_snippet
+    # can pick them up via _extract_code_blocks()
+    if code_blocks:
+        raw = "\n\n".join(code_blocks) + "\n\n" + raw
+
+    return raw.strip(), urls, images
+
+
 def _map_mcp_content(raw_items: list[dict], query: str) -> list[dict]:
     """
     Normalise MCP tool response items to internal chunk schema.
-    Each item has {type: 'text', text: '<markdown content>'}.
+    Each item has {type: 'text', text: '<markdown or JSON content>'}.
     Score is synthetic (position-based) since MCP doesn't return scores.
     """
     mapped = []
-    total = max(len(raw_items), 1)
     for i, item in enumerate(raw_items[:5]):
-        text = item.get("text", "")
-        # Derive a file_path from any URL in the text
-        import re as _re
-        urls = _re.findall(r"https?://learn\.microsoft\.com/[^\s\)\"']+", text)
+        raw_text = item.get("text", "")
+        text, urls, images = _clean_mcp_text(raw_text)
+
         file_path = urls[0] if urls else f"microsoft-learn/result-{i+1}.md"
         # Synthetic score: first result scores highest
         score = round(0.95 - (i * 0.08), 2)
-        # Extract image URLs
-        images = _re.findall(r"https?://\S+\.(?:png|jpg|jpeg|gif|svg)(?:\?\S*)?", text, _re.I)
+
         mapped.append({
             "chunk_id": f"mcp-{uuid.uuid4().hex[:8]}",
             "file_path": file_path,
             "page_numbers": "",
-            "text": text[:800],
-            "snippet": text[:200],
+            "text": text[:1200],   # slightly larger budget now text is clean
+            "snippet": text[:250],
             "score": score,
             "images": images[:2],
             "links": urls[:2],
@@ -383,19 +442,35 @@ _PII_PATTERN = re.compile(
 
 
 def _build_query(intent_result: dict, input_obj: AgentInput) -> str:
-    focus = intent_result.get("queryFocus", input_obj.userInput)
+    """
+    Build a clean MCP search query.
+    Use the user's original input as the base — it is the most natural
+    signal for the search engine. Append audience and iteration hint only
+    as a suffix so the core query stays readable.
+    """
+    user_q = input_obj.userInput.strip()
+    aud    = input_obj.audience
+    prior  = input_obj.sessionStore.priorQueries
     entities = intent_result.get("entities", [])
-    aud = input_obj.audience
-    prior = input_obj.sessionStore.priorQueries
-    base = f"{focus} for {aud}" if aud else focus
+
+    # Start from the user's own words
+    base = user_q
+    # Add audience context only when it adds meaning
+    if aud and aud not in ("developer", "intermediate"):
+        base = f"{base} for {aud}"
+    # On loop re-entry, steer away from the previous attempt
     if input_obj.sessionStore.iterationCount > 0 and prior:
-        base = f"{base} — alternative approach to: {prior[-1]}"
+        base = f"{base} alternative approach"
     return _PII_PATTERN.sub("[REDACTED]", base)
 
 
-def _suggest_refinements(query: str, intent: str) -> list[str]:
-    narrower = f"{query} step-by-step tutorial with code example"
-    broader = " ".join(query.split()[:4]) + " overview"
+def _suggest_refinements(user_input: str, intent: str) -> list[str]:
+    """Plain-language refinements derived from the user's own words."""
+    words = user_input.strip().rstrip("?").strip()
+    narrower = f"{words} step-by-step with code example"
+    # Broader: first 4-5 words of the query
+    short = " ".join(words.split()[:5])
+    broader  = f"{short} overview and concepts"
     return [narrower, broader]
 
 
@@ -449,7 +524,7 @@ class RetrievalAgent:
         if not raw_chunks:
             return {
                 "results": [], "avgScore": 0.0, "lowConfidence": True,
-                "suggestedRefinements": _suggest_refinements(query, intent_result.get("chosenIntent", "")),
+                "suggestedRefinements": _suggest_refinements(input_obj.userInput, intent_result.get("chosenIntent", "")),
                 "mcpSessionId": session_store.mcpSessionId, "indexSize": 0,
             }
 
@@ -463,18 +538,13 @@ class RetrievalAgent:
         if not reranked:
             reranked = raw_chunks
 
-        if MOCK_MODE:
-            # FAISS scores on random unit vectors are near-zero — not meaningful.
-            # Restore the pre-set realistic MCP scores keyed by chunk_id,
-            # while keeping the FAISS-determined ordering.
-            chunk_scores = {c["chunk_id"]: c["score"] for c in raw_chunks}
-            for r in reranked:
-                r["score"] = chunk_scores.get(r["chunk_id"], r["score"])
-        else:
-            # Normalise live FAISS inner-product scores to 0–1 range
-            max_s = max(r["score"] for r in reranked) or 1.0
-            for r in reranked:
-                r["score"] = round(r["score"] / max_s, 4)
+        # FAISS inner-product scores on (mock or live) unit vectors are not
+        # meaningful as confidence values — they depend on embedding geometry.
+        # Use FAISS only for ORDERING; restore the original MCP position-based
+        # scores (0.95 → 0.75 → …) which ARE meaningful relative relevance signals.
+        chunk_scores = {c["chunk_id"]: c["score"] for c in raw_chunks}
+        for r in reranked:
+            r["score"] = chunk_scores.get(r["chunk_id"], r["score"])
 
         avg_score = round(sum(r["score"] for r in reranked) / len(reranked), 4)
 
@@ -484,7 +554,7 @@ class RetrievalAgent:
             "results": reranked,
             "avgScore": avg_score,
             "lowConfidence": low_confidence,
-            "suggestedRefinements": _suggest_refinements(query, intent_result.get("chosenIntent", "")),
+            "suggestedRefinements": _suggest_refinements(input_obj.userInput, intent_result.get("chosenIntent", "")),
             "mcpSessionId": session_store.mcpSessionId,
             "indexSize": len(session_store.faissChunks),
         }
