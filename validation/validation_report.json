@@ -1,0 +1,130 @@
+{
+  "files_checked": 4,
+  "results": [
+    {
+      "file": "test_a_loop2_output.json",
+      "passed": true,
+      "checks": {
+        "schema": {
+          "errors": [],
+          "passed": true
+        },
+        "loop_options": {
+          "errors": [],
+          "passed": true
+        },
+        "accessibility": {
+          "errors": [],
+          "passed": true
+        },
+        "routing": {
+          "errors": [],
+          "passed": true
+        },
+        "loop_marker": {
+          "errors": [],
+          "passed": true
+        },
+        "sources": {
+          "errors": [],
+          "passed": true
+        }
+      }
+    },
+    {
+      "file": "test_a_output.json",
+      "passed": true,
+      "checks": {
+        "schema": {
+          "errors": [],
+          "passed": true
+        },
+        "loop_options": {
+          "errors": [],
+          "passed": true
+        },
+        "accessibility": {
+          "errors": [],
+          "passed": true
+        },
+        "routing": {
+          "errors": [],
+          "passed": true
+        },
+        "loop_marker": {
+          "errors": [],
+          "passed": true
+        },
+        "sources": {
+          "errors": [],
+          "passed": true
+        }
+      }
+    },
+    {
+      "file": "test_b_output.json",
+      "passed": true,
+      "checks": {
+        "schema": {
+          "errors": [],
+          "passed": true
+        },
+        "loop_options": {
+          "errors": [],
+          "passed": true
+        },
+        "accessibility": {
+          "errors": [],
+          "passed": true
+        },
+        "routing": {
+          "errors": [],
+          "passed": true
+        },
+        "loop_marker": {
+          "errors": [],
+          "passed": true
+        },
+        "sources": {
+          "errors": [],
+          "passed": true
+        }
+      }
+    },
+    {
+      "file": "test_c_output.json",
+      "passed": true,
+      "checks": {
+        "schema": {
+          "errors": [],
+          "passed": true
+        },
+        "loop_options": {
+          "errors": [],
+          "passed": true
+        },
+        "accessibility": {
+          "errors": [],
+          "passed": true
+        },
+        "routing": {
+          "errors": [],
+          "passed": true
+        },
+        "loop_marker": {
+          "errors": [],
+          "passed": true
+        },
+        "sources": {
+          "errors": [],
+          "passed": true
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0
+  }
+}

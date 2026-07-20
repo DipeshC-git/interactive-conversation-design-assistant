@@ -1,0 +1,20 @@
+{
+  "sessionId": "test-b",
+  "responseType": "clarify",
+  "responseText": "Are you looking for step-by-step instructions or a conceptual overview?",
+  "format": null,
+  "content": "- Are you looking for step-by-step instructions or a conceptual overview?\n- Could you share more detail — which service or technology are you working with?",
+  "interactiveOptions": [
+    {"id": "action_0", "label": "Search Microsoft Learn documentation", "description": "Search Microsoft Learn documentation"},
+    {"id": "action_1", "label": "Find a step-by-step how-to guide", "description": "Find a step-by-step how-to guide"},
+    {"id": "action_2", "label": "Get a code example for my scenario", "description": "Get a code example for my scenario"}
+  ],
+  "sources": [],
+  "confidence": "Low",
+  "mcpSessionId": null,
+  "suggestedRefinements": [],
+  "routeToHumanReview": false,
+  "estimatedReadTime": "1 min read",
+  "validationReport": {"clarityScore": 5, "concisionScore": 5, "accessibilityPass": true},
+  "_meta": {"test_id": "B", "iteration": 1, "mcp_called": false, "indexSize": 0, "mock_mode": "true"}
+}

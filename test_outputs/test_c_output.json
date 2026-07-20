@@ -1,0 +1,42 @@
+{
+  "sessionId": "test-c",
+  "responseType": "low_confidence",
+  "responseText": "We're still looking for the best answer about contoso, device. Try refining your search.",
+  "format": "summary",
+  "content": "We couldn't find a confident answer about **contoso, device** yet.\n\nHere are some refined search approaches that might help:\n\n- policy_lookup [contoso, device, reset] for admin step-by-step tutorial with code example\n- policy_lookup [contoso, device, reset] overview",
+  "interactiveOptions": [
+    {
+      "id": "show_next",
+      "label": "Show me next",
+      "description": "See more results about contoso, device"
+    },
+    {
+      "id": "doesnt_help",
+      "label": "This doesn't help",
+      "description": "Tell us this missed the mark on contoso, device and try a different angle"
+    }
+  ],
+  "sources": [],
+  "confidence": "Low",
+  "mcpSessionId": "mock-session-0221860e",
+  "suggestedRefinements": [
+    "policy_lookup [contoso, device, reset] for admin step-by-step tutorial with code example",
+    "policy_lookup [contoso, device, reset] overview"
+  ],
+  "routeToHumanReview": true,
+  "estimatedReadTime": "1 min read",
+  "validationReport": {
+    "clarityScore": 4,
+    "concisionScore": 5,
+    "accessibilityPass": false
+  },
+  "_meta": {
+    "test_id": "C",
+    "iteration": 1,
+    "timestamp": "2026-07-20T20:35:29.040005+00:00",
+    "mcp_called": true,
+    "mcpSessionId": "mock-session-0221860e",
+    "indexSize": 1,
+    "mock_mode": "true"
+  }
+}
