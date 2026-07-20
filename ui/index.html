@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conversation Design Assistant</title>
+
+  <!-- IBM Carbon Design System CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles/css/styles.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --cds-background:       #161616;
+      --cds-layer-01:         #262626;
+      --cds-layer-02:         #393939;
+      --cds-layer-accent-01:  #393939;
+      --cds-border-subtle-00: #393939;
+      --cds-border-subtle-01: #525252;
+      --cds-text-primary:     #f4f4f4;
+      --cds-text-secondary:   #c6c6c6;
+      --cds-text-placeholder: #6f6f6f;
+      --cds-interactive:      #4589ff;
+      --cds-interactive-hover:#0062fe;
+      --cds-support-success:  #42be65;
+      --cds-support-warning:  #f1c21b;
+      --cds-support-error:    #fa4d56;
+      --cds-tag-blue-bg:      #0043ce;
+      --cds-tag-green-bg:     #0e6027;
+      --cds-tag-orange-bg:    #b45309;
+      --spacing-02: .25rem;
+      --spacing-03: .5rem;
+      --spacing-04: .75rem;
+      --spacing-05: 1rem;
+      --spacing-06: 1.5rem;
+      --spacing-07: 2rem;
+      --spacing-09: 3rem;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--cds-background);
+      color: var(--cds-text-primary);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    .cda-header {
+      background: #000;
+      border-bottom: 1px solid #393939;
+      display: flex;
+      align-items: center;
+      padding: 0 var(--spacing-07);
+      height: 48px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .cda-header__logo {
+      display: flex; align-items: center; gap: var(--spacing-04);
+      text-decoration: none; color: var(--cds-text-primary);
+    }
+    .cda-header__logo svg { width: 20px; height: 20px; fill: var(--cds-interactive); }
+    .cda-header__name { font-size: 14px; font-weight: 600; letter-spacing: .16px; }
+    .cda-header__separator { flex: 1; }
+    .cda-header__tag {
+      font-size: 11px; background: #0043ce33; color: #78a9ff;
+      border: 1px solid #0043ce; border-radius: 2px; padding: 1px 8px;
+      font-family: 'IBM Plex Mono', monospace; letter-spacing: .32px;
+    }
+
+    /* ── Layout ─────────────────────────────────────────── */
+    .cda-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      height: calc(100vh - 48px);
+    }
+
+    /* ── Left panel — history ───────────────────────────── */
+    .cda-sidebar {
+      background: var(--cds-layer-01);
+      border-right: 1px solid var(--cds-border-subtle-00);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .cda-sidebar__head {
+      padding: var(--spacing-05) var(--spacing-06);
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .32px; color: var(--cds-text-secondary);
+      border-bottom: 1px solid var(--cds-border-subtle-00);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .cda-sidebar__list { flex: 1; overflow-y: auto; }
+    .cda-history-item {
+      padding: var(--spacing-04) var(--spacing-06);
+      border-bottom: 1px solid #2e2e2e;
+      cursor: pointer;
+      transition: background .1s;
+    }
+    .cda-history-item:hover { background: var(--cds-layer-02); }
+    .cda-history-item.active { background: #0043ce22; border-left: 2px solid var(--cds-interactive); }
+    .cda-history-item__query {
+      font-size: 13px; color: var(--cds-text-primary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cda-history-item__meta {
+      font-size: 11px; color: var(--cds-text-secondary); margin-top: 2px;
+      display: flex; gap: var(--spacing-04); align-items: center;
+    }
+    .confidence-badge {
+      font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+      padding: 0 5px; border-radius: 2px; font-weight: 600;
+    }
+    .confidence-badge.High  { background:#0e6027; color:#42be65; }
+    .confidence-badge.Medium{ background:#31352e; color:#a7f0ba; }
+    .confidence-badge.Low   { background:#3b1a1a; color:#ff8389; }
+    .cda-sidebar__new {
+      padding: var(--spacing-05) var(--spacing-06);
+      border-top: 1px solid var(--cds-border-subtle-00);
+    }
+
+    /* ── Main chat area ──────────────────────────────────── */
+    .cda-main {
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .cda-messages {
+      flex: 1; overflow-y: auto;
+      padding: var(--spacing-07) var(--spacing-09);
+      display: flex; flex-direction: column; gap: var(--spacing-06);
+    }
+    .cda-messages::-webkit-scrollbar { width: 4px; }
+    .cda-messages::-webkit-scrollbar-track { background: transparent; }
+    .cda-messages::-webkit-scrollbar-thumb { background: #525252; border-radius: 2px; }
+
+    /* ── Input bar ───────────────────────────────────────── */
+    .cda-input-bar {
+      background: var(--cds-layer-01);
+      border-top: 1px solid var(--cds-border-subtle-00);
+      padding: var(--spacing-05) var(--spacing-09);
+    }
+    .cda-input-bar__inner {
+      display: flex; align-items: flex-end; gap: var(--spacing-04);
+      max-width: 860px; margin: 0 auto;
+    }
+    .cda-input-bar__textarea {
+      flex: 1;
+      background: var(--cds-layer-02);
+      border: 1px solid var(--cds-border-subtle-01);
+      color: var(--cds-text-primary);
+      padding: var(--spacing-04) var(--spacing-05);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 14px; line-height: 1.5;
+      border-radius: 0;
+      resize: none; min-height: 44px; max-height: 180px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .cda-input-bar__textarea:focus { border-color: var(--cds-interactive); }
+    .cda-input-bar__textarea::placeholder { color: var(--cds-text-placeholder); }
+    .cda-input-bar__controls {
+      display: flex; flex-direction: column; gap: var(--spacing-03);
+    }
+    .cda-select {
+      background: var(--cds-layer-02);
+      border: 1px solid var(--cds-border-subtle-01);
+      color: var(--cds-text-primary);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 12px; padding: 4px 8px;
+      outline: none; cursor: pointer;
+    }
+    .cda-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 6px;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 14px; font-weight: 400;
+      padding: 0 var(--spacing-06);
+      height: 44px;
+      border: none; cursor: pointer;
+      transition: background .15s;
+      outline: none;
+      white-space: nowrap;
+    }
+    .cda-btn--primary {
+      background: var(--cds-interactive); color: #fff;
+    }
+    .cda-btn--primary:hover { background: var(--cds-interactive-hover); }
+    .cda-btn--primary:disabled { background: #525252; cursor: not-allowed; }
+    .cda-btn--ghost {
+      background: transparent; color: var(--cds-interactive);
+      border: 1px solid var(--cds-interactive);
+    }
+    .cda-btn--ghost:hover { background: #0043ce22; }
+    .cda-btn--danger-ghost {
+      background: transparent; color: #ff8389;
+      border: 1px solid #fa4d56;
+    }
+    .cda-btn--danger-ghost:hover { background: #3b1a1a; }
+    .cda-btn--sm { height: 32px; font-size: 12px; padding: 0 var(--spacing-05); }
+
+    /* ── Message bubbles ─────────────────────────────────── */
+    .msg { max-width: 860px; margin: 0 auto; width: 100%; }
+
+    .msg--user { display: flex; justify-content: flex-end; }
+    .msg--user .msg__bubble {
+      background: #0043ce; color: #fff;
+      padding: var(--spacing-04) var(--spacing-05);
+      max-width: 70%; font-size: 14px; line-height: 1.6;
+    }
+
+    .msg--agent { display: flex; flex-direction: column; gap: var(--spacing-04); }
+    .msg--agent .msg__avatar {
+      display: flex; align-items: center; gap: var(--spacing-03);
+      font-size: 11px; color: var(--cds-text-secondary); font-weight: 600;
+      text-transform: uppercase; letter-spacing: .32px;
+    }
+    .msg--agent .msg__avatar svg { width: 16px; height: 16px; fill: var(--cds-interactive); }
+
+    /* ── Carbon Tile ─────────────────────────────────────── */
+    .cds-tile {
+      background: var(--cds-layer-01);
+      border: 1px solid var(--cds-border-subtle-00);
+      padding: var(--spacing-06);
+    }
+    .cds-tile--insight {
+      background: #0043ce11;
+      border-left: 3px solid var(--cds-interactive);
+      padding: var(--spacing-05) var(--spacing-06);
+      font-size: 14px; line-height: 1.6; color: var(--cds-text-secondary);
+      margin-bottom: var(--spacing-05);
+    }
+    .cds-tile--insight strong { color: #78a9ff; }
+
+    /* ── Markdown content ────────────────────────────────── */
+    .content-body { font-size: 14px; line-height: 1.7; color: var(--cds-text-primary); }
+    .content-body h1,.content-body h2 {
+      font-size: 18px; font-weight: 600; margin: var(--spacing-06) 0 var(--spacing-04);
+      color: var(--cds-text-primary); border-bottom: 1px solid var(--cds-border-subtle-00);
+      padding-bottom: var(--spacing-03);
+    }
+    .content-body h3 { font-size: 15px; font-weight: 600; margin: var(--spacing-05) 0 var(--spacing-03); }
+    .content-body p { margin: 0 0 var(--spacing-04); }
+    .content-body ul,.content-body ol { margin: 0 0 var(--spacing-04); padding-left: 1.5rem; }
+    .content-body li { margin-bottom: var(--spacing-02); }
+    .content-body pre {
+      background: #0a0a0a; border: 1px solid var(--cds-border-subtle-01);
+      padding: var(--spacing-05); overflow-x: auto;
+      font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.6;
+      margin: var(--spacing-05) 0;
+    }
+    .content-body code:not(pre code) {
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+      background: #393939; padding: 1px 5px; color: #78a9ff;
+    }
+    .content-body blockquote {
+      border-left: 3px solid var(--cds-interactive);
+      margin: var(--spacing-05) 0; padding: var(--spacing-04) var(--spacing-06);
+      background: #0043ce0d; color: var(--cds-text-secondary);
+    }
+    .content-body a { color: #78a9ff; text-decoration: none; }
+    .content-body a:hover { text-decoration: underline; }
+    .content-body strong { color: #f4f4f4; font-weight: 600; }
+
+    /* ── Media tiles ─────────────────────────────────────── */
+    .media-grid {
+      display: flex; flex-wrap: wrap; gap: var(--spacing-04); margin-top: var(--spacing-05);
+    }
+    .media-tile {
+      background: var(--cds-layer-02);
+      border: 1px solid var(--cds-border-subtle-01);
+      padding: var(--spacing-04);
+      flex: 1; min-width: 180px; max-width: 260px;
+    }
+    .media-tile img {
+      width: 100%; height: 120px; object-fit: cover;
+      background: #393939; display: block;
+    }
+    .media-tile__label {
+      font-size: 12px; color: var(--cds-text-secondary); margin-top: var(--spacing-03);
+    }
+    .media-tile--video { display: flex; align-items: center; gap: var(--spacing-04); }
+    .media-tile--video .play-icon {
+      width: 36px; height: 36px; background: var(--cds-interactive);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .media-tile--video .play-icon svg { width: 14px; height: 14px; fill: #fff; margin-left: 2px; }
+
+    /* ── Sources section ─────────────────────────────────── */
+    .sources-list { margin-top: var(--spacing-05); }
+    .sources-list__head {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .32px; color: var(--cds-text-secondary); margin-bottom: var(--spacing-04);
+    }
+    .source-item {
+      display: flex; align-items: center; gap: var(--spacing-04);
+      padding: var(--spacing-03) var(--spacing-05);
+      background: var(--cds-layer-02);
+      border-left: 2px solid #525252;
+      margin-bottom: var(--spacing-03);
+      font-size: 12px;
+    }
+    .source-item__path { flex: 1; color: #78a9ff; word-break: break-all; }
+    .source-item__score {
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--cds-text-secondary);
+      white-space: nowrap;
+    }
+
+    /* ── Interactive options ─────────────────────────────── */
+    .options-bar {
+      display: flex; flex-wrap: wrap; gap: var(--spacing-04);
+      margin-top: var(--spacing-05);
+      padding-top: var(--spacing-05);
+      border-top: 1px solid var(--cds-border-subtle-00);
+    }
+
+    /* ── Clarify card ────────────────────────────────────── */
+    .clarify-card {
+      background: var(--cds-layer-01);
+      border: 1px solid #0043ce;
+      padding: var(--spacing-06);
+    }
+    .clarify-card__title {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .32px; color: #78a9ff; margin-bottom: var(--spacing-05);
+    }
+    .clarify-q { margin-bottom: var(--spacing-04); font-size: 14px; }
+
+    /* ── Low confidence notice ───────────────────────────── */
+    .low-conf-notice {
+      background: #3b1a1a;
+      border: 1px solid #fa4d56;
+      padding: var(--spacing-05) var(--spacing-06);
+      display: flex; align-items: flex-start; gap: var(--spacing-05);
+      margin-bottom: var(--spacing-05);
+    }
+    .low-conf-notice svg { width: 16px; height: 16px; fill: #ff8389; flex-shrink: 0; margin-top: 2px; }
+    .low-conf-notice__text { font-size: 13px; color: #ffb3b8; }
+
+    /* ── Loading skeleton ────────────────────────────────── */
+    .skeleton-line {
+      height: 14px; background: var(--cds-layer-02);
+      border-radius: 2px; margin-bottom: 8px;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0%   { opacity: .4; }
+      50%  { opacity: .8; }
+      100% { opacity: .4; }
+    }
+
+    /* ── Divider ─────────────────────────────────────────── */
+    .iter-divider {
+      display: flex; align-items: center; gap: var(--spacing-04);
+      margin: var(--spacing-04) 0; color: var(--cds-text-secondary); font-size: 11px;
+    }
+    .iter-divider::before, .iter-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--cds-border-subtle-00);
+    }
+
+    /* ── Human review banner ─────────────────────────────── */
+    .human-review-banner {
+      background: #31352e; border: 1px solid var(--cds-support-success);
+      padding: var(--spacing-05) var(--spacing-06);
+      display: flex; align-items: center; gap: var(--spacing-05);
+      margin-top: var(--spacing-05);
+    }
+    .human-review-banner svg { width: 16px; height: 16px; fill: var(--cds-support-success); flex-shrink: 0; }
+    .human-review-banner__text { font-size: 13px; color: #a7f0ba; }
+
+    /* ── Empty state ─────────────────────────────────────── */
+    .empty-state {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: var(--spacing-06);
+      color: var(--cds-text-secondary); text-align: center; padding: var(--spacing-09);
+    }
+    .empty-state svg { width: 48px; height: 48px; fill: #525252; }
+    .empty-state__title { font-size: 20px; font-weight: 300; color: var(--cds-text-primary); }
+    .empty-state__body  { font-size: 14px; max-width: 420px; line-height: 1.6; }
+    .suggestion-chips { display: flex; flex-wrap: wrap; gap: var(--spacing-03); justify-content: center; margin-top: var(--spacing-04); }
+    .chip {
+      background: var(--cds-layer-01);
+      border: 1px solid var(--cds-border-subtle-01);
+      color: var(--cds-interactive);
+      font-size: 12px; padding: var(--spacing-03) var(--spacing-05);
+      cursor: pointer; transition: background .1s;
+    }
+    .chip:hover { background: var(--cds-layer-02); }
+
+    /* ── Read time / iteration tag ───────────────────────── */
+    .meta-row {
+      display: flex; align-items: center; gap: var(--spacing-05);
+      font-size: 11px; color: var(--cds-text-secondary); margin-bottom: var(--spacing-04);
+    }
+    .meta-row .dot { width: 3px; height: 3px; background: #525252; border-radius: 50%; }
+
+    /* ── Validation report ───────────────────────────────── */
+    .val-report {
+      display: flex; gap: var(--spacing-04); margin-top: var(--spacing-05);
+      padding: var(--spacing-04) var(--spacing-05);
+      background: var(--cds-layer-02);
+      font-size: 11px; color: var(--cds-text-secondary);
+      flex-wrap: wrap;
+    }
+    .val-score { display: flex; align-items: center; gap: 4px; }
+    .val-dots { display: flex; gap: 2px; }
+    .val-dot { width: 8px; height: 8px; border-radius: 1px; background: #393939; }
+    .val-dot.on { background: var(--cds-interactive); }
+    .val-a11y-pass { color: var(--cds-support-success); }
+    .val-a11y-fail { color: var(--cds-support-error); }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="cda-header" role="banner">
+  <a class="cda-header__logo" href="#" aria-label="Conversation Design Assistant home">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2zm-1 6h2v10h-2zm1 14a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>
+    </svg>
+    <span class="cda-header__name">Conversation Design Assistant</span>
+  </a>
+  <span class="cda-header__separator"></span>
+  <span class="cda-header__tag" id="mockTag">MOCK</span>
+</header>
+
+<!-- ── Layout ── -->
+<div class="cda-layout">
+
+  <!-- ── Sidebar ── -->
+  <nav class="cda-sidebar" aria-label="Conversation history">
+    <div class="cda-sidebar__head">
+      <span>History</span>
+      <button class="cda-btn cda-btn--ghost cda-btn--sm" id="clearHistoryBtn" aria-label="Clear history">Clear</button>
+    </div>
+    <ul class="cda-sidebar__list" id="historyList" role="list" aria-label="Previous conversations"></ul>
+    <div class="cda-sidebar__new">
+      <button class="cda-btn cda-btn--primary" style="width:100%" id="newChatBtn" aria-label="Start new conversation">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M9 7V1H7v6H1v2h6v6h2V9h6V7z"/></svg>
+        New conversation
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main class="cda-main" aria-label="Conversation">
+
+    <!-- Messages -->
+    <section class="cda-messages" id="messages" aria-live="polite" aria-label="Messages">
+      <!-- Empty state -->
+      <div class="empty-state" id="emptyState" aria-label="Welcome screen">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M28 6H4a2 2 0 00-2 2v16a2 2 0 002 2h4v4l6-4h14a2 2 0 002-2V8a2 2 0 00-2-2zM8 18H6v-2h2zm0-4H6v-2h2zm14 0H10v-2h12zm0-4H10v-2h12z"/>
+        </svg>
+        <div class="empty-state__title">What would you like to know?</div>
+        <div class="empty-state__body">Ask a question about Microsoft documentation, OAuth 2.0 setup, device policies, or any technical how-to. The assistant retrieves live MS Learn content and synthesises a structured answer.</div>
+        <div class="suggestion-chips" role="list" aria-label="Example questions">
+          <button class="chip" role="listitem" data-query="How do I configure OAuth 2.0 for Azure AD in Node.js?">OAuth 2.0 + Azure AD in Node.js</button>
+          <button class="chip" role="listitem" data-query="How do I set up authentication?">Set up authentication</button>
+          <button class="chip" role="listitem" data-query="Show me Contoso device reset policy">Contoso device reset policy</button>
+          <button class="chip" role="listitem" data-query="What is OpenID Connect and when should I use it?">What is OpenID Connect?</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Input bar -->
+    <div class="cda-input-bar" role="form" aria-label="Send a message">
+      <div class="cda-input-bar__inner">
+        <textarea
+          id="userInput"
+          class="cda-input-bar__textarea"
+          rows="1"
+          placeholder="Ask a question about Microsoft documentation…"
+          aria-label="Your question"
+          aria-multiline="true"
+        ></textarea>
+        <div class="cda-input-bar__controls">
+          <select class="cda-select" id="audienceSelect" aria-label="Audience">
+            <option value="developer">Developer</option>
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+          <button class="cda-btn cda-btn--primary" id="sendBtn" aria-label="Send question">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M2.007 2.004L14 8 2.007 13.996 3 9.5 10 8 3 6.5z"/></svg>
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+const API = 'http://localhost:8000';
+let sessionId = null;
+let iterationCount = 0;
+let history = [];
+
+// ---------------------------------------------------------------------------
+// DOM refs
+// ---------------------------------------------------------------------------
+const messagesEl   = document.getElementById('messages');
+const emptyState   = document.getElementById('emptyState');
+const userInputEl  = document.getElementById('userInput');
+const sendBtn      = document.getElementById('sendBtn');
+const audienceSel  = document.getElementById('audienceSelect');
+const historyList  = document.getElementById('historyList');
+const newChatBtn   = document.getElementById('newChatBtn');
+const clearHistBtn = document.getElementById('clearHistoryBtn');
+const mockTag      = document.getElementById('mockTag');
+
+// ---------------------------------------------------------------------------
+// Startup — check health
+// ---------------------------------------------------------------------------
+fetch(API + '/health')
+  .then(r => r.json())
+  .then(d => {
+    if (d.mock_mode === 'false') {
+      mockTag.textContent = 'LIVE';
+      mockTag.style.background = '#0e602733';
+      mockTag.style.color = '#42be65';
+      mockTag.style.borderColor = '#24a148';
+    }
+  })
+  .catch(() => {
+    mockTag.textContent = 'OFFLINE';
+    mockTag.style.background = '#3b1a1a';
+    mockTag.style.color = '#ff8389';
+    mockTag.style.borderColor = '#fa4d56';
+  });
+
+// ---------------------------------------------------------------------------
+// Session helpers
+// ---------------------------------------------------------------------------
+function newSession() {
+  sessionId = 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
+  iterationCount = 0;
+}
+
+function hideEmpty() {
+  if (emptyState) { emptyState.style.display = 'none'; }
+}
+
+function scrollBottom() {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+// ---------------------------------------------------------------------------
+// History sidebar
+// ---------------------------------------------------------------------------
+function addHistoryItem(query, confidence) {
+  history.unshift({ query, confidence, sessionId });
+  renderHistory();
+}
+
+function renderHistory() {
+  historyList.innerHTML = '';
+  history.forEach((item, i) => {
+    const li = document.createElement('li');
+    li.className = 'cda-history-item' + (i === 0 ? ' active' : '');
+    li.setAttribute('role', 'listitem');
+    li.setAttribute('aria-label', 'Previous query: ' + item.query);
+    li.innerHTML = `
+      <div class="cda-history-item__query" title="${esc(item.query)}">${esc(item.query)}</div>
+      <div class="cda-history-item__meta">
+        <span class="confidence-badge ${item.confidence}">${item.confidence}</span>
+        <span>${item.sessionId.slice(-6)}</span>
+      </div>`;
+    historyList.appendChild(li);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Escape HTML
+// ---------------------------------------------------------------------------
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ---------------------------------------------------------------------------
+// Simple Markdown → HTML renderer
+// ---------------------------------------------------------------------------
+function mdToHtml(md) {
+  if (!md) return '';
+  let html = md;
+  // Code blocks (must go before inline code)
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    const l = lang || 'text';
+    return `<pre><code class="language-${esc(l)}">${esc(code.trim())}</code></pre>`;
+  });
+  // Blockquotes
+  html = html.replace(/^&gt; ?(.+)$/gm, '<blockquote>$1</blockquote>');
+  // Headings
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  // Bold
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Links
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  // Images — render inline
+  html = html.replace(/!\[([^\]]*)\]\((https?:\/\/[^\)]+)\)/g, (_, alt, src) =>
+    `<figure style="margin:8px 0"><img src="${src}" alt="${esc(alt)}" style="max-width:100%;border:1px solid #393939" onerror="this.style.display='none'" /><figcaption style="font-size:11px;color:#6f6f6f;margin-top:4px">${esc(alt)}</figcaption></figure>`
+  );
+  // Video / MS Learn links (▶)
+  html = html.replace(/▶ \[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
+    '<div class="media-tile media-tile--video"><div class="play-icon"><svg viewBox="0 0 12 12"><polygon points="2,1 11,6 2,11" fill="white"/></svg></div><a href="$2" target="_blank" rel="noopener" style="color:#78a9ff;font-size:13px">$1</a></div>'
+  );
+  // Ordered list
+  html = html.replace(/((?:^\d+\. .+\n?)+)/gm, (block) => {
+    const items = block.trim().split('\n').map(l => `<li>${l.replace(/^\d+\. /,'')}</li>`).join('');
+    return `<ol>${items}</ol>`;
+  });
+  // Unordered list
+  html = html.replace(/((?:^[-*] .+\n?)+)/gm, (block) => {
+    const items = block.trim().split('\n').map(l => `<li>${l.replace(/^[-*] /,'')}</li>`).join('');
+    return `<ul>${items}</ul>`;
+  });
+  // Paragraphs (lines not already wrapped)
+  html = html.split('\n\n').map(para => {
+    para = para.trim();
+    if (!para) return '';
+    if (/^<(h[123456]|ul|ol|pre|blockquote|div|figure)/.test(para)) return para;
+    return `<p>${para.replace(/\n/g,' ')}</p>`;
+  }).join('\n');
+  return html;
+}
+
+// ---------------------------------------------------------------------------
+// Extract insight line from content (first blockquote)
+// ---------------------------------------------------------------------------
+function extractInsight(content) {
+  const m = content.match(/>\s*\*?\*?Insight:\*?\*?\s*(.+?)(?:\n|$)/);
+  return m ? m[1].trim() : null;
+}
+
+function stripInsight(content) {
+  return content.replace(/^>\s*\*?\*?Insight:\*?\*?\s*.+?\n?/m, '').trim();
+}
+
+// ---------------------------------------------------------------------------
+// Build sources HTML
+// ---------------------------------------------------------------------------
+function buildSources(sources) {
+  if (!sources || !sources.length) return '';
+  const items = sources.map(s => {
+    const fp = s.file_path || '';
+    const label = fp.startsWith('http') ? fp.replace('https://learn.microsoft.com','…') : fp;
+    const href  = fp.startsWith('http') ? fp : '#';
+    const score = typeof s.score === 'number' ? s.score.toFixed(2) : '—';
+    return `<div class="source-item">
+      <a class="source-item__path" href="${esc(href)}" target="_blank" rel="noopener" aria-label="Source: ${esc(label)}">${esc(label)}</a>
+      <span class="source-item__score" aria-label="Relevance score ${score}">score ${score}</span>
+    </div>`;
+  }).join('');
+  return `<div class="sources-list"><div class="sources-list__head">Sources</div>${items}</div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Build validation report HTML
+// ---------------------------------------------------------------------------
+function buildValidation(vr) {
+  if (!vr) return '';
+  function dots(score, max) {
+    let h = '';
+    for (let i = 0; i < max; i++) h += `<span class="val-dot${i < score ? ' on' : ''}" aria-hidden="true"></span>`;
+    return `<span class="val-dots" role="img" aria-label="${score} of ${max}">${h}</span>`;
+  }
+  const a11y = vr.accessibilityPass
+    ? `<span class="val-a11y-pass" aria-label="Accessibility passed">&#10003; A11y</span>`
+    : `<span class="val-a11y-fail" aria-label="Accessibility failed">&#10007; A11y</span>`;
+  return `<div class="val-report" role="note" aria-label="Validation report">
+    <span class="val-score">Clarity ${dots(vr.clarityScore,5)}</span>
+    <span class="dot"></span>
+    <span class="val-score">Concision ${dots(vr.concisionScore,5)}</span>
+    <span class="dot"></span>
+    ${a11y}
+  </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Build interactive options HTML
+// ---------------------------------------------------------------------------
+function buildOptions(options, currentSessionId, isLowConf) {
+  if (!options || !options.length) return '';
+  const btns = options.map(opt => {
+    let cls = 'cda-btn cda-btn--ghost cda-btn--sm';
+    if (opt.id === 'doesnt_help') cls = 'cda-btn cda-btn--danger-ghost cda-btn--sm';
+    if (opt.id === 'contact_support' || opt.id === 'get_human_help') cls = 'cda-btn cda-btn--ghost cda-btn--sm';
+    return `<button
+      class="${cls}"
+      data-option-id="${esc(opt.id)}"
+      data-session="${esc(currentSessionId)}"
+      aria-label="${esc(opt.description)}"
+      title="${esc(opt.description)}"
+    >${esc(opt.label)}</button>`;
+  }).join('');
+  return `<div class="options-bar" role="group" aria-label="Follow-up options">${btns}</div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Render a full agent response
+// ---------------------------------------------------------------------------
+function renderAgentResponse(data, iteration) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg msg--agent';
+  wrap.setAttribute('role', 'article');
+  wrap.setAttribute('aria-label', `Assistant response, iteration ${iteration + 1}`);
+
+  // Avatar row
+  wrap.innerHTML = `<div class="msg__avatar">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2zm-1 6h2v10h-2zm1 14a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>
+    Assistant
+    <span class="confidence-badge ${data.confidence}" aria-label="Confidence: ${data.confidence}">${data.confidence}</span>
+    ${iteration > 0 ? `<span style="font-size:11px;color:#6f6f6f">· Result set ${iteration+1}</span>` : ''}
+  </div>`;
+
+  const tile = document.createElement('div');
+  tile.className = 'cds-tile';
+
+  // Iteration divider
+  if (iteration > 0) {
+    const div = document.createElement('div');
+    div.className = 'iter-divider';
+    div.setAttribute('role', 'separator');
+    div.setAttribute('aria-label', `Refined result set ${iteration+1}`);
+    div.textContent = `Showing result set ${iteration+1} — refined for you`;
+    messagesEl.appendChild(div);
+  }
+
+  // Meta row
+  const meta = document.createElement('div');
+  meta.className = 'meta-row';
+  meta.setAttribute('aria-label', `Estimated read time: ${data.estimatedReadTime}`);
+  meta.innerHTML = `<span>${data.estimatedReadTime || '1 min read'}</span>
+    <span class="dot"></span>
+    <span>${(data.format || 'answer').replace('_',' ')}</span>`;
+  tile.appendChild(meta);
+
+  // Low confidence notice
+  if (data.confidence === 'Low' || data.responseType === 'low_confidence') {
+    const notice = document.createElement('div');
+    notice.className = 'low-conf-notice';
+    notice.setAttribute('role', 'alert');
+    notice.setAttribute('aria-label', 'Low confidence warning');
+    notice.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1L1 14h14L8 1zm-1 5h2v4H7zm0 5h2v2H7z"/></svg>
+      <div class="low-conf-notice__text">${esc(data.responseText || 'We could not find a confident answer yet.')}</div>`;
+    tile.appendChild(notice);
+  }
+
+  // Clarify card
+  if (data.responseType === 'clarify') {
+    const cc = document.createElement('div');
+    cc.className = 'clarify-card';
+    cc.setAttribute('role', 'region');
+    cc.setAttribute('aria-label', 'Clarifying questions');
+    cc.innerHTML = `<div class="clarify-card__title">We need a bit more detail</div>`;
+    const qs = data.content ? data.content.split('\n').filter(l => l.trim().startsWith('-')) : [];
+    qs.forEach(q => {
+      const p = document.createElement('p');
+      p.className = 'clarify-q';
+      p.textContent = q.replace(/^- /,'');
+      cc.appendChild(p);
+    });
+    tile.appendChild(cc);
+  } else {
+    // Insight callout
+    const insight = extractInsight(data.content || '');
+    if (insight) {
+      const ic = document.createElement('div');
+      ic.className = 'cds-tile--insight';
+      ic.setAttribute('role', 'note');
+      ic.setAttribute('aria-label', 'Key insight');
+      ic.innerHTML = `<strong>Insight:</strong> ${esc(insight)}`;
+      tile.appendChild(ic);
+    }
+
+    // Main content
+    const body = document.createElement('div');
+    body.className = 'content-body';
+    body.setAttribute('aria-label', 'Response content');
+    const stripped = stripInsight(data.content || '');
+    body.innerHTML = mdToHtml(stripped);
+    tile.appendChild(body);
+  }
+
+  // Sources
+  const srcHtml = buildSources(data.sources);
+  if (srcHtml) {
+    const srcEl = document.createElement('div');
+    srcEl.innerHTML = srcHtml;
+    tile.appendChild(srcEl);
+  }
+
+  // Suggested refinements
+  if (data.suggestedRefinements && data.suggestedRefinements.length) {
+    const rf = document.createElement('div');
+    rf.style.cssText = 'margin-top:12px;font-size:12px;color:#6f6f6f';
+    rf.setAttribute('aria-label', 'Suggested refinements');
+    rf.innerHTML = '<strong style="color:#c6c6c6">Try refining:</strong> ';
+    data.suggestedRefinements.forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = 'chip';
+      btn.style.cssText = 'font-size:11px;margin:4px 4px 0 0';
+      btn.textContent = r.length > 60 ? r.slice(0,57)+'…' : r;
+      btn.title = r;
+      btn.setAttribute('aria-label', 'Refine search: ' + r);
+      btn.addEventListener('click', () => { userInputEl.value = r; userInputEl.focus(); });
+      rf.appendChild(btn);
+    });
+    tile.appendChild(rf);
+  }
+
+  // Validation report
+  const vrHtml = buildValidation(data.validationReport);
+  if (vrHtml) {
+    const vrEl = document.createElement('div');
+    vrEl.innerHTML = vrHtml;
+    tile.appendChild(vrEl);
+  }
+
+  // Human review banner
+  if (data.routeToHumanReview) {
+    const hrb = document.createElement('div');
+    hrb.className = 'human-review-banner';
+    hrb.setAttribute('role', 'alert');
+    hrb.setAttribute('aria-label', 'Routed to human review');
+    hrb.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" stroke="#42be65" stroke-width="1.5" fill="none"/><path d="M5 8l2 2 4-4" stroke="#42be65" stroke-width="1.5" fill="none"/></svg>
+      <div class="human-review-banner__text">This response has been flagged for human review. A specialist may follow up.</div>`;
+    tile.appendChild(hrb);
+  }
+
+  // Interactive options
+  const optsHtml = buildOptions(data.interactiveOptions, data.sessionId, data.confidence === 'Low');
+  if (optsHtml) {
+    const optsEl = document.createElement('div');
+    optsEl.innerHTML = optsHtml;
+    tile.appendChild(optsEl);
+    // attach click handlers
+    optsEl.querySelectorAll('[data-option-id]').forEach(btn => {
+      btn.addEventListener('click', () => handleOption(btn.dataset.optionId, btn.dataset.session));
+    });
+  }
+
+  wrap.appendChild(tile);
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+}
+
+// ---------------------------------------------------------------------------
+// Add user message bubble
+// ---------------------------------------------------------------------------
+function renderUserMsg(text) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg msg--user';
+  wrap.setAttribute('role', 'article');
+  wrap.setAttribute('aria-label', 'Your message');
+  wrap.innerHTML = `<div class="msg__bubble">${esc(text)}</div>`;
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+}
+
+// ---------------------------------------------------------------------------
+// Loading skeleton
+// ---------------------------------------------------------------------------
+function showSkeleton() {
+  const sk = document.createElement('div');
+  sk.id = 'loadingSkeleton';
+  sk.className = 'msg msg--agent';
+  sk.setAttribute('aria-label', 'Loading response');
+  sk.setAttribute('aria-busy', 'true');
+  sk.innerHTML = `<div class="msg__avatar" aria-hidden="true">
+    <svg viewBox="0 0 32 32" width="16" height="16"><path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z"/></svg>
+    Thinking…
+  </div>
+  <div class="cds-tile">
+    <div class="skeleton-line" style="width:80%"></div>
+    <div class="skeleton-line" style="width:60%"></div>
+    <div class="skeleton-line" style="width:90%"></div>
+    <div class="skeleton-line" style="width:50%"></div>
+  </div>`;
+  messagesEl.appendChild(sk);
+  scrollBottom();
+}
+
+function removeSkeleton() {
+  const sk = document.getElementById('loadingSkeleton');
+  if (sk) sk.remove();
+}
+
+// ---------------------------------------------------------------------------
+// Send a new chat message
+// ---------------------------------------------------------------------------
+async function sendMessage(query) {
+  const text = (query || userInputEl.value).trim();
+  if (!text) return;
+  userInputEl.value = '';
+  autoResizeTextarea();
+  hideEmpty();
+  newSession();
+
+  renderUserMsg(text);
+  sendBtn.disabled = true;
+  showSkeleton();
+
+  try {
+    const resp = await fetch(API + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        userInput: text,
+        audience: audienceSel.value,
+        maxLength: 2000,
+        humanReviewOnLowConfidence: true,
+      }),
+    });
+    const data = await resp.json();
+    removeSkeleton();
+    renderAgentResponse(data, 0);
+    addHistoryItem(text, data.confidence || 'Low');
+  } catch (e) {
+    removeSkeleton();
+    const errEl = document.createElement('div');
+    errEl.className = 'msg msg--agent';
+    errEl.innerHTML = `<div class="low-conf-notice" role="alert"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1L1 14h14L8 1zm-1 5h2v4H7zm0 5h2v2H7z"/></svg><div class="low-conf-notice__text">Could not reach the assistant API at ${esc(API)}. Make sure the server is running.</div></div>`;
+    messagesEl.appendChild(errEl);
+    scrollBottom();
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Handle interactive option clicks
+// ---------------------------------------------------------------------------
+async function handleOption(optionId, sid) {
+  if (optionId === 'contact_support' || optionId === 'get_human_help') {
+    const banner = document.createElement('div');
+    banner.className = 'human-review-banner msg';
+    banner.setAttribute('role', 'alert');
+    banner.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" stroke="#42be65" stroke-width="1.5" fill="none"/><path d="M5 8l2 2 4-4" stroke="#42be65" stroke-width="1.5" fill="none"/></svg>
+      <div class="human-review-banner__text">Connecting you with a specialist. Your conversation has been saved for review.</div>`;
+    messagesEl.appendChild(banner);
+    scrollBottom();
+    return;
+  }
+
+  iterationCount++;
+  showSkeleton();
+  sendBtn.disabled = true;
+
+  try {
+    const resp = await fetch(API + '/loop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: sid, feedbackSignal: optionId }),
+    });
+    const data = await resp.json();
+    removeSkeleton();
+    renderAgentResponse(data, iterationCount);
+  } catch (e) {
+    removeSkeleton();
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Auto-resize textarea
+// ---------------------------------------------------------------------------
+function autoResizeTextarea() {
+  userInputEl.style.height = 'auto';
+  userInputEl.style.height = Math.min(userInputEl.scrollHeight, 180) + 'px';
+}
+
+// ---------------------------------------------------------------------------
+// Event listeners
+// ---------------------------------------------------------------------------
+sendBtn.addEventListener('click', () => sendMessage());
+
+userInputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+userInputEl.addEventListener('input', autoResizeTextarea);
+
+newChatBtn.addEventListener('click', () => {
+  messagesEl.innerHTML = '';
+  messagesEl.appendChild(emptyState);
+  emptyState.style.display = '';
+  userInputEl.value = '';
+  sessionId = null;
+});
+
+clearHistBtn.addEventListener('click', () => {
+  history = [];
+  historyList.innerHTML = '';
+});
+
+// Suggestion chips
+document.querySelectorAll('.chip[data-query]').forEach(btn => {
+  btn.addEventListener('click', () => sendMessage(btn.dataset.query));
+});
+</script>
+</body>
+</html>

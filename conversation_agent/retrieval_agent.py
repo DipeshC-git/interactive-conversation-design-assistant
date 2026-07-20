@@ -286,27 +286,45 @@ def _mock_embed(texts: list[str]) -> np.ndarray:
 
 def _live_embed(texts: list[str]) -> np.ndarray:
     """
-    Call watsonx embeddings API.
-    Falls back to mock embeddings if the endpoint is unavailable
-    (e.g. Watson Orchestrate instances without a direct embeddings endpoint).
+    Call watsonx Embeddings client via ibm-watsonx-ai SDK.
+
+    Credential resolution order (mirrors orchestrator.py):
+      1. WATSONX_IAM_APIKEY (standard IBM Cloud IAM key — recommended)
+      2. WATSONX_BEARER_TOKEN (Watson Orchestrate SSO token — legacy)
+
+    Falls back to deterministic mock embeddings on any error.
+    FAISS ordering remains valid; scores are restored from MCP position weights.
     """
-    bearer = os.environ.get("WATSONX_BEARER_TOKEN", "")
-    url = os.environ.get("WATSONX_URL", "").rstrip("/")
+    url  = os.environ.get("WATSONX_URL", "").rstrip("/")
+    proj = os.environ.get("WATSONX_PROJECT_ID", "")
+    if not (url and proj):
+        return _mock_embed(texts)
     try:
-        resp = requests.post(
-            f"{url}/v1/embeddings",
-            headers={"Authorization": f"Bearer {bearer}", "Content-Type": "application/json"},
-            json={"model_id": "ibm/slate-30m-english-rtrvr", "inputs": texts},
-            timeout=20,
+        from ibm_watsonx_ai import Credentials           # type: ignore
+        from ibm_watsonx_ai.foundation_models import Embeddings  # type: ignore
+
+        iam_key = os.environ.get("WATSONX_IAM_APIKEY", "")
+        bearer  = os.environ.get("WATSONX_BEARER_TOKEN", "")
+
+        if iam_key:
+            creds = Credentials(url=url, api_key=iam_key)
+        elif bearer:
+            creds = Credentials(url=url, token=bearer)
+        else:
+            return _mock_embed(texts)
+
+        embed_client = Embeddings(
+            model_id="ibm/slate-30m-english-rtrvr",
+            credentials=creds,
+            project_id=proj,
         )
-        resp.raise_for_status()
-        vecs = [r["embedding"] for r in resp.json()["results"]]
-        arr = np.array(vecs, dtype="float32")
+        response = embed_client.embed_documents(texts=texts)
+        # SDK returns list[list[float]]
+        arr = np.array(response, dtype="float32")
         norms = np.linalg.norm(arr, axis=1, keepdims=True) + 1e-9
         return arr / norms
     except Exception:
-        # Graceful fallback: use deterministic mock embeddings
-        # FAISS ordering still valid; scores come from MCP position weights
+        # Graceful fallback: deterministic mock embeddings
         return _mock_embed(texts)
 
 

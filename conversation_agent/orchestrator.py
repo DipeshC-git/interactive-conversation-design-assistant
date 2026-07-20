@@ -45,24 +45,39 @@ MOCK_MODE = os.environ.get("MOCK_MODE", "true").lower() == "true"
 
 def _init_watsonx_model() -> object | None:
     """
-    Initialise watsonx ModelInference client.
-    Returns None in mock mode or when credentials are missing.
+    Initialise watsonx ModelInference client using IBM Cloud IAM API key.
+
+    Credential resolution order:
+      1. WATSONX_IAM_APIKEY (standard IBM Cloud IAM key — recommended)
+      2. WATSONX_BEARER_TOKEN (Watson Orchestrate SSO token — legacy)
+
+    Returns None in mock mode or when credentials/URL are missing.
     """
     if MOCK_MODE:
         return None
-    bearer = os.environ.get("WATSONX_BEARER_TOKEN", "")
-    url    = os.environ.get("WATSONX_URL", "")
-    proj   = os.environ.get("WATSONX_PROJECT_ID", "")
-    if not (bearer and url and proj):
+    url  = os.environ.get("WATSONX_URL", "").rstrip("/")
+    proj = os.environ.get("WATSONX_PROJECT_ID", "")
+    if not (url and proj):
         return None
     try:
         from ibm_watsonx_ai import Credentials           # type: ignore
         from ibm_watsonx_ai.foundation_models import ModelInference  # type: ignore
-        creds = Credentials(url=url, token=bearer)
+
+        iam_key = os.environ.get("WATSONX_IAM_APIKEY", "")
+        bearer  = os.environ.get("WATSONX_BEARER_TOKEN", "")
+
+        if iam_key:
+            creds = Credentials(url=url, api_key=iam_key)
+        elif bearer:
+            creds = Credentials(url=url, token=bearer)
+        else:
+            return None  # no usable credential
+
         return ModelInference(
             model_id="ibm/granite-13b-chat-v2",
             credentials=creds,
             project_id=proj,
+            validate=False,   # skip connectivity check at construction time
         )
     except Exception:
         return None

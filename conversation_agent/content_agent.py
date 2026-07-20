@@ -150,16 +150,26 @@ def _mock_summary(selected: list[dict], intent: str, audience: str) -> str:
 
 
 def _live_summary(selected: list[dict], intent: str, audience: str, model: object) -> str:
-    """Call watsonx ModelInference.generate_text() for a summary block."""
+    """
+    Call watsonx ModelInference.generate_text() for a plain-language summary block.
+    Falls back to mock template on any error so the pipeline never hard-fails.
+    """
     combined = " ".join(c.get("text", "")[:300] for c in selected[:2])
     prompt = (
-        f"Summarize the following in 2–3 plain-language sentences for a {audience}. "
-        f"Be concise, use active voice, and focus on what the reader needs to do or know.\n\n"
+        f"Summarize the following in 2-3 plain-language sentences for a {audience}. "
+        f"Be concise, use active voice, and focus on what the reader needs to do or know. "
+        f"Do not add markdown formatting — plain sentences only.\n\n"
         f"{combined}"
     )
     try:
-        result = model.generate_text(prompt=prompt)  # type: ignore[union-attr]
-        return result.strip() if isinstance(result, str) else str(result)
+        result = model.generate_text(prompt=prompt, guardrails=False)  # type: ignore[union-attr]
+        # generate_text returns a str directly
+        text = result.strip() if isinstance(result, str) else str(result).strip()
+        # Strip any residual JSON artifacts (e.g. {"generated_text": ...})
+        if text.startswith("{") and "generated_text" in text:
+            import json as _json
+            text = _json.loads(text).get("generated_text", text).strip()
+        return text if text else _mock_summary(selected, intent, audience)
     except Exception:
         return _mock_summary(selected, intent, audience)
 
