@@ -35,10 +35,10 @@
   "_meta": {
     "test_id": "B",
     "iteration": 1,
-    "timestamp": "2026-07-20T20:35:29.038485+00:00",
+    "timestamp": "2026-07-20T21:12:52.084929+00:00",
     "mcp_called": false,
     "mcpSessionId": null,
     "indexSize": 0,
-    "mock_mode": "true"
+    "mock_mode": "false"
   }
 }

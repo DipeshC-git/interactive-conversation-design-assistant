@@ -3,7 +3,7 @@
   "responseType": "answer",
   "responseText": "Here's a refined result for azure, azure ad \u2014 hope this is closer to what you need.",
   "format": "code_snippet",
-  "content": "> *Showing result set 2 \u2014 refined for you*\n\n\n> **Insight:** Here's a plain-language summary for a developer: OAuth 2.0 authorization code flow for Azure AD app registration. See the full details and steps below.\n\n\n## Code Example\n\n```javascript\n// Required packages: @azure/msal-node (npm install @azure/msal-node)\n// Security: store clientSecret in environment variables \u2014 never in source code.\nconst msal = require('@azure/msal-node');\n\nconst config = {\n  auth: {\n    clientId: process.env.CLIENT_ID,       // App registration client ID\n    authority: 'https://login.microsoftonline.com/' + process.env.TENANT_ID,\n    clientSecret: process.env.CLIENT_SECRET,  // \u26a0 Keep this secret\n  },\n};\n\nconst cca = new msal.ConfidentialClientApplication(config);\n\n// Exchange auth code for access token\nasync function getToken(authCode) {\n  const tokenRequest = {\n    code: authCode,\n    scopes: ['User.Read'],\n    redirectUri: process.env.REDIRECT_URI,\n  };\n  const response = await cca.acquireTokenByCode(tokenRequest);\n  return response.accessToken;\n}\n```\n\n**Source:** [azure/active-directory/develop/v2-oauth2-auth-code-flow.md](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow)\n\n## Media\n\n![Diagram from v2-oauth2-auth-code-flow](https://learn.microsoft.com/media/diagrams/oauth-code-flow.png)\n\n## Sources\n\n- [azure/active-directory/develop/v2-oauth2-auth-code-flow.md](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow) \u2014 score: 0.95\n- [azure/active-directory/develop/v2-oauth2-auth-code-flow.md](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow) \u2014 score: 0.95\n- [azure/active-directory/develop/msal-node-migration.md](#) \u2014 score: 0.82",
+  "content": "> *Showing result set 2 \u2014 refined for you*\n\n\n> **Insight:** Here's what we found for developers: # Configure authentication in a sample Node.js web application by usi See the full details below.\n\n\n## Code Example\n\n```javascript\n// Required packages: @azure/msal-node (npm install @azure/msal-node)\n// Security: store clientSecret in environment variables \u2014 never in source code.\nconst msal = require('@azure/msal-node');\n\nconst config = {\n  auth: {\n    clientId: process.env.CLIENT_ID,       // App registration client ID\n    authority: 'https://login.microsoftonline.com/' + process.env.TENANT_ID,\n    clientSecret: process.env.CLIENT_SECRET,  // \u26a0 Keep this secret\n  },\n};\n\nconst cca = new msal.ConfidentialClientApplication(config);\n\n// Exchange auth code for access token\nasync function getToken(authCode) {\n  const tokenRequest = {\n    code: authCode,\n    scopes: ['User.Read'],\n    redirectUri: process.env.REDIRECT_URI,\n  };\n  const response = await cca.acquireTokenByCode(tokenRequest);\n  return response.accessToken;\n}\n```\n\n**Source:** [https://learn.microsoft.com/azure/active-directory-b2c/configure-a-sample-node-web-app#step-5-configure-the-sample-web-app](https://learn.microsoft.com/azure/active-directory-b2c/configure-a-sample-node-web-app#step-5-configure-the-sample-web-app)\n\n## Media\n\n![Diagram from configure-a-sample-node-web-app#step-5-configure-the-sample-web-app](https://learn.microsoft.com/azure/active-directory-b2c/media/configure-a-sample-node-web-app/tutorial-login-page.png)\n![Diagram from configure-a-sample-node-web-app#step-5-configure-the-sample-web-app](https://learn.microsoft.com/azure/active-directory-b2c/media/configure-a-sample-node-web-app/tutorial-dashboard-page.png)\n![Diagram from configure-a-sample-node-web-app#step-2-register-a-web-application](https://learn.microsoft.com/azure/active-directory-b2c/media/enable-authentication-web-api/app-with-api-architecture.png)\n\u25b6 [Integrations Learn Platform Api Catalog \n\n> *[See more\u2026]*",
   "interactiveOptions": [
     {
       "id": "show_next",
@@ -18,23 +18,23 @@
   ],
   "sources": [
     {
-      "file_path": "azure/active-directory/develop/v2-oauth2-auth-code-flow.md",
-      "page_numbers": "1-3",
-      "score": 0.9500000000000001
+      "file_path": "https://learn.microsoft.com/azure/active-directory-b2c/configure-a-sample-node-web-app#step-5-configure-the-sample-web-app",
+      "page_numbers": "",
+      "score": 1.0
     },
     {
-      "file_path": "azure/active-directory/develop/v2-oauth2-auth-code-flow.md",
-      "page_numbers": "1-3",
-      "score": 0.9500000000000001
+      "file_path": "https://learn.microsoft.com/azure/active-directory-b2c/configure-a-sample-node-web-app#step-2-register-a-web-application",
+      "page_numbers": "",
+      "score": 1.0
     },
     {
-      "file_path": "azure/active-directory/develop/msal-node-migration.md",
-      "page_numbers": "2",
-      "score": 0.8200000000000001
+      "file_path": "https://learn.microsoft.com/training/support/integrations-learn-platform-api-catalog-quickstart#set-up-the-project",
+      "page_numbers": "",
+      "score": 0.1403
     }
   ],
-  "confidence": "High",
-  "mcpSessionId": "mock-session-4f14de27",
+  "confidence": "Medium",
+  "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiIyOGVhY2NkNi00ZGVkLTRmMmEtYTVmNi05NjExNjYxMzI2NDQifQ==",
   "suggestedRefinements": [
     "configure_oauth [azure, azure ad, node.js] \u2014 refining from: show_next for developer \u2014 alternative approach to: show_next step-by-step tutorial with code example",
     "configure_oauth [azure, azure ad, overview"
@@ -49,10 +49,10 @@
   "_meta": {
     "test_id": "A",
     "iteration": 2,
-    "timestamp": "2026-07-20T20:35:29.037468+00:00",
+    "timestamp": "2026-07-20T21:12:52.082659+00:00",
     "mcp_called": true,
-    "mcpSessionId": "mock-session-4f14de27",
-    "indexSize": 6,
-    "mock_mode": "true"
+    "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiIyOGVhY2NkNi00ZGVkLTRmMmEtYTVmNi05NjExNjYxMzI2NDQifQ==",
+    "indexSize": 4,
+    "mock_mode": "false"
   }
 }

@@ -135,10 +135,17 @@ def _mock_summary(selected: list[dict], intent: str, audience: str) -> str:
     if not selected:
         return "We searched our knowledge base but couldn't find a strong match for your query."
     top = selected[0]
-    snippet = top.get("snippet", top.get("text", "")[:120])
+    # Use snippet if available; otherwise take first 2 sentences of text
+    raw = top.get("snippet", top.get("text", ""))
+    # Strip any JSON artifacts from the text
+    import re as _re
+    raw = _re.sub(r'^\{"results":\[.*?"content":"', '', raw, flags=_re.S)
+    raw = _re.sub(r'"\}.*$', '', raw, flags=_re.S)
+    # Take first 150 clean chars
+    clean = raw.replace('\n', ' ').strip()[:150]
     return (
-        f"Here's a plain-language summary for a {audience}: {snippet} "
-        f"See the full details and steps below."
+        f"Here's what we found for {audience}s: {clean} "
+        f"See the full details below."
     )
 
 

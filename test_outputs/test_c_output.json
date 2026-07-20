@@ -1,9 +1,9 @@
 {
   "sessionId": "test-c",
-  "responseType": "low_confidence",
-  "responseText": "We're still looking for the best answer about contoso, device. Try refining your search.",
+  "responseType": "answer",
+  "responseText": "Here's what we found about contoso, device.",
   "format": "summary",
-  "content": "We couldn't find a confident answer about **contoso, device** yet.\n\nHere are some refined search approaches that might help:\n\n- policy_lookup [contoso, device, reset] for admin step-by-step tutorial with code example\n- policy_lookup [contoso, device, reset] overview",
+  "content": "> **Insight:** Here's what we found for admins: # Reset device from Company Portal website\\n**Applies to**:\\n1. iOS/iPadOS\\n2. Windows\\nRemotely reset a used, lost, or stole See the full details below.\n\n\n## Summary \u2014 Contoso, Device\n\n{\"results\":[{\"title\":\"Reset device from Company Portal website\",\"content\":\"# Reset device from Company Portal website\\n**Applies to**:\\n1. iOS/iPadOS\\n2. Windows\\nRemotely reset a used, lost, or stolen device to factory default settings. A *reset* deletes all apps, settings, and personal data on the\n\n\n## Media\n\n![Diagram from wipe](https://learn.microsoft.com/intune/solutions/education/tutorial-school-deployment/media/reset-devices/retire.png)\n![Diagram from wipe](https://learn.microsoft.com/intune/media/icons/16/check.svg)\n\n## Sources\n\n- [https://learn.microsoft.com/intune/device-management/actions/wipe](https://learn.microsoft.com/intune/device-management/actions/wipe) \u2014 score: 1.00",
   "interactiveOptions": [
     {
       "id": "show_next",
@@ -16,27 +16,33 @@
       "description": "Tell us this missed the mark on contoso, device and try a different angle"
     }
   ],
-  "sources": [],
-  "confidence": "Low",
-  "mcpSessionId": "mock-session-0221860e",
+  "sources": [
+    {
+      "file_path": "https://learn.microsoft.com/intune/device-management/actions/wipe",
+      "page_numbers": "",
+      "score": 1.0
+    }
+  ],
+  "confidence": "High",
+  "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJlYzUzMDA5NS01MzU2LTRhZDAtODQ2Yy0xNmY3NTk3OTk5MmEifQ==",
   "suggestedRefinements": [
     "policy_lookup [contoso, device, reset] for admin step-by-step tutorial with code example",
     "policy_lookup [contoso, device, reset] overview"
   ],
-  "routeToHumanReview": true,
+  "routeToHumanReview": false,
   "estimatedReadTime": "1 min read",
   "validationReport": {
-    "clarityScore": 4,
+    "clarityScore": 5,
     "concisionScore": 5,
     "accessibilityPass": false
   },
   "_meta": {
     "test_id": "C",
     "iteration": 1,
-    "timestamp": "2026-07-20T20:35:29.040005+00:00",
+    "timestamp": "2026-07-20T21:12:55.539024+00:00",
     "mcp_called": true,
-    "mcpSessionId": "mock-session-0221860e",
+    "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJlYzUzMDA5NS01MzU2LTRhZDAtODQ2Yy0xNmY3NTk3OTk5MmEifQ==",
     "indexSize": 1,
-    "mock_mode": "true"
+    "mock_mode": "false"
   }
 }
