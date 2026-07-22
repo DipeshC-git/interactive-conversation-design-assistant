@@ -4,492 +4,846 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Conversation Design Assistant</title>
-
-  <!-- IBM Carbon Design System CDN -->
-  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles/css/styles.css" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" />
-
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
-
+    /* ── Carbon Design System tokens (Gray 100 theme) ── */
     :root {
-      --cds-background:       #161616;
-      --cds-layer-01:         #262626;
-      --cds-layer-02:         #393939;
-      --cds-layer-accent-01:  #393939;
-      --cds-border-subtle-00: #393939;
-      --cds-border-subtle-01: #525252;
-      --cds-text-primary:     #f4f4f4;
-      --cds-text-secondary:   #c6c6c6;
-      --cds-text-placeholder: #6f6f6f;
-      --cds-interactive:      #4589ff;
-      --cds-interactive-hover:#0062fe;
-      --cds-support-success:  #42be65;
-      --cds-support-warning:  #f1c21b;
-      --cds-support-error:    #fa4d56;
-      --cds-tag-blue-bg:      #0043ce;
-      --cds-tag-green-bg:     #0e6027;
-      --cds-tag-orange-bg:    #b45309;
-      --spacing-02: .25rem;
-      --spacing-03: .5rem;
-      --spacing-04: .75rem;
-      --spacing-05: 1rem;
-      --spacing-06: 1.5rem;
-      --spacing-07: 2rem;
-      --spacing-09: 3rem;
+      --cds-background:            #161616;
+      --cds-background-hover:      #262626;
+      --cds-background-active:     #393939;
+      --cds-layer-01:              #262626;
+      --cds-layer-02:              #393939;
+      --cds-layer-03:              #525252;
+      --cds-layer-hover-01:        #333333;
+      --cds-layer-hover-02:        #474747;
+      --cds-layer-accent-01:       #393939;
+      --cds-border-subtle-00:      #393939;
+      --cds-border-subtle-01:      #525252;
+      --cds-border-strong-01:      #6f6f6f;
+      --cds-border-interactive:    #4589ff;
+      --cds-text-primary:          #f4f4f4;
+      --cds-text-secondary:        #c6c6c6;
+      --cds-text-placeholder:      #6f6f6f;
+      --cds-text-disabled:         #525252;
+      --cds-text-on-color:         #ffffff;
+      --cds-text-inverse:          #161616;
+      --cds-link-primary:          #78a9ff;
+      --cds-link-primary-hover:    #a6c8ff;
+      --cds-icon-primary:          #f4f4f4;
+      --cds-icon-secondary:        #8d8d8d;
+      --cds-interactive:           #4589ff;
+      --cds-interactive-hover:     #0f62fe;
+      --cds-focus:                 #ffffff;
+      --cds-focus-inset:           #0f62fe;
+      --cds-support-error:         #ff8389;
+      --cds-support-success:       #42be65;
+      --cds-support-warning:       #f1c21b;
+      --cds-support-info:          #4589ff;
+      --cds-button-primary:        #0f62fe;
+      --cds-button-primary-hover:  #0353e9;
+      --cds-button-primary-active: #002d9c;
+      --cds-button-secondary:      #393939;
+      --cds-button-secondary-hover:#474747;
+      --cds-button-ghost-hover:    #262626;
+      --cds-tag-blue-background:   #0043ce;
+      --cds-tag-blue-color:        #a6c8ff;
+      --cds-tag-green-background:  #0e6027;
+      --cds-tag-green-color:       #a7f0ba;
+      --cds-tag-cool-gray-background:#4d5358;
+      --cds-tag-cool-gray-color:   #dde1e6;
+      --cds-skeleton-background:   #353535;
+      --cds-skeleton-element:      #525252;
+      --font-sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+      --font-mono: 'IBM Plex Mono', 'Menlo', 'Consolas', monospace;
     }
 
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+
     body {
-      margin: 0;
-      font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+      font-family: var(--font-sans);
       background: var(--cds-background);
       color: var(--cds-text-primary);
       font-size: 14px;
       line-height: 1.5;
-      min-height: 100vh;
-    }
-
-    /* ── Header ─────────────────────────────────────────── */
-    .cda-header {
-      background: #000;
-      border-bottom: 1px solid #393939;
       display: flex;
-      align-items: center;
-      padding: 0 var(--spacing-07);
+      flex-direction: column;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       HEADER — Carbon UI Shell
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .cds--header {
+      position: sticky; top: 0; z-index: 8000;
+      display: flex; align-items: center;
       height: 48px;
-      position: sticky; top: 0; z-index: 100;
+      background: #000000;
+      border-bottom: 1px solid var(--cds-border-subtle-00);
+      padding: 0;
+      flex-shrink: 0;
     }
-    .cda-header__logo {
-      display: flex; align-items: center; gap: var(--spacing-04);
-      text-decoration: none; color: var(--cds-text-primary);
+    .cds--header__name {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0 16px;
+      height: 100%;
+      font-size: 14px; font-weight: 600; letter-spacing: .16px;
+      color: var(--cds-text-primary);
+      text-decoration: none;
+      white-space: nowrap;
+      border-right: 1px solid var(--cds-border-subtle-00);
     }
-    .cda-header__logo svg { width: 20px; height: 20px; fill: var(--cds-interactive); }
-    .cda-header__name { font-size: 14px; font-weight: 600; letter-spacing: .16px; }
-    .cda-header__separator { flex: 1; }
-    .cda-header__tag {
-      font-size: 11px; background: #0043ce33; color: #78a9ff;
-      border: 1px solid #0043ce; border-radius: 2px; padding: 1px 8px;
-      font-family: 'IBM Plex Mono', monospace; letter-spacing: .32px;
+    .cds--header__name-prefix {
+      font-weight: 300; margin-right: 4px; color: var(--cds-text-secondary);
+    }
+    .cds--header__logo {
+      width: 20px; height: 20px;
+      background: var(--cds-interactive);
+      border-radius: 2px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .cds--header__logo svg { width: 12px; height: 12px; fill: #fff; }
+    .cds--header__nav {
+      display: flex; align-items: center; height: 100%;
+      padding: 0 8px;
+    }
+    .cds--header__nav-item {
+      display: flex; align-items: center;
+      height: 100%; padding: 0 16px;
+      font-size: 14px; color: var(--cds-text-secondary);
+      cursor: pointer; position: relative;
+      white-space: nowrap;
+      transition: color .1s, background .1s;
+    }
+    .cds--header__nav-item:hover { background: var(--cds-background-hover); color: var(--cds-text-primary); }
+    .cds--header__nav-item.active {
+      color: var(--cds-text-primary);
+    }
+    .cds--header__nav-item.active::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: var(--cds-interactive);
+    }
+    .cds--header__global {
+      display: flex; align-items: center;
+      margin-left: auto; height: 100%;
+    }
+    .cds--header__action {
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--cds-icon-secondary);
+      transition: background .1s, color .1s;
+      position: relative;
+    }
+    .cds--header__action:hover { background: var(--cds-background-hover); color: var(--cds-icon-primary); }
+    .cds--header__action svg { width: 20px; height: 20px; fill: currentColor; }
+    .cds--header__status-tag {
+      display: flex; align-items: center; gap: 5px;
+      padding: 0 12px;
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: .32px; font-weight: 500;
+      height: 24px; border-radius: 2px;
+      background: var(--cds-tag-blue-background);
+      color: var(--cds-tag-blue-color);
+      margin: auto 16px;
+      white-space: nowrap;
+    }
+    .cds--header__status-tag .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--cds-tag-blue-color);
+      flex-shrink: 0;
     }
 
-    /* ── Layout ─────────────────────────────────────────── */
-    .cda-layout {
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       LAYOUT
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .app-layout {
+      flex: 1;
       display: grid;
-      grid-template-columns: 280px 1fr;
-      height: calc(100vh - 48px);
+      grid-template-columns: 256px 1fr;
+      overflow: hidden;
     }
 
-    /* ── Left panel — history ───────────────────────────── */
-    .cda-sidebar {
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       LEFT PANEL — Carbon Side Nav
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .cds--side-nav {
       background: var(--cds-layer-01);
       border-right: 1px solid var(--cds-border-subtle-00);
       display: flex; flex-direction: column;
       overflow: hidden;
     }
-    .cda-sidebar__head {
-      padding: var(--spacing-05) var(--spacing-06);
+    .side-nav__section {
+      padding: 16px 16px 8px;
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .32px;
+      color: var(--cds-text-secondary);
+      border-bottom: 1px solid var(--cds-border-subtle-00);
+    }
+    .side-nav__section p {
+      font-size: 12px; font-weight: 400;
+      text-transform: none; letter-spacing: normal;
+      color: var(--cds-text-secondary); margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    /* Audience selector */
+    .side-nav__group {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--cds-border-subtle-00);
+    }
+    .side-nav__group-label {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .32px;
+      color: var(--cds-text-secondary);
+      display: block; margin-bottom: 8px;
+    }
+    .aud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+    .cds--tag-btn {
+      display: flex; align-items: center; justify-content: center;
+      padding: 4px 8px; height: 28px;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 400;
+      border: 1px solid var(--cds-border-subtle-01);
+      border-radius: 0;
+      background: transparent;
+      color: var(--cds-text-secondary);
+      cursor: pointer;
+      transition: all .1s;
+      white-space: nowrap;
+    }
+    .cds--tag-btn:hover { background: var(--cds-layer-hover-01); color: var(--cds-text-primary); }
+    .cds--tag-btn.selected {
+      background: var(--cds-tag-blue-background);
+      border-color: var(--cds-interactive);
+      color: var(--cds-tag-blue-color);
+    }
+    .depth-row { display: flex; gap: 0; }
+    .depth-row .cds--tag-btn { flex: 1; border-right-width: 0; }
+    .depth-row .cds--tag-btn:last-child { border-right-width: 1px; }
+    .depth-row .cds--tag-btn.selected { border-right-width: 1px; }
+
+    /* Example prompts */
+    .side-nav__examples {
+      flex: 1; overflow-y: auto;
+      padding: 8px 0;
+    }
+    .side-nav__examples::-webkit-scrollbar { width: 4px; }
+    .side-nav__examples::-webkit-scrollbar-track { background: transparent; }
+    .side-nav__examples::-webkit-scrollbar-thumb { background: var(--cds-layer-accent-01); }
+    .side-nav__examples-label {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .32px;
+      color: var(--cds-text-secondary);
+      padding: 8px 16px 6px; display: block;
+    }
+    .cds--side-nav__item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 16px;
+      font-size: 13px; color: var(--cds-text-secondary);
+      background: transparent; border: none;
+      cursor: pointer; text-align: left; width: 100%;
+      line-height: 1.4;
+      transition: background .1s, color .1s;
+      font-family: var(--font-sans);
+    }
+    .cds--side-nav__item:hover { background: var(--cds-layer-hover-01); color: var(--cds-text-primary); }
+    .cds--side-nav__item svg { flex-shrink: 0; margin-top: 1px; fill: var(--cds-icon-secondary); }
+
+    .side-nav__footer {
+      padding: 10px 16px;
+      border-top: 1px solid var(--cds-border-subtle-00);
+      font-size: 11px; color: var(--cds-text-secondary); line-height: 1.6;
+    }
+    .side-nav__footer strong { color: var(--cds-text-primary); display: block; margin-bottom: 2px; font-size: 11px; font-weight: 600; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       MAIN CONVERSATION AREA
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .conv-area {
+      display: flex; flex-direction: column;
+      overflow: hidden; background: var(--cds-background);
+    }
+
+    /* ── Welcome / empty state ── */
+    .cds--empty-state {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 48px 32px;
+      text-align: center;
+    }
+    .cds--empty-state__icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--cds-layer-01);
+      border: 1px solid var(--cds-border-subtle-00);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .cds--empty-state__icon svg { width: 32px; height: 32px; fill: var(--cds-interactive); }
+    .cds--empty-state__heading {
+      font-size: 28px; font-weight: 300; line-height: 1.2;
+      letter-spacing: -.3px;
+      color: var(--cds-text-primary);
+      margin-bottom: 10px;
+    }
+    .cds--empty-state__body {
+      font-size: 14px; color: var(--cds-text-secondary);
+      max-width: 500px; line-height: 1.7; margin-bottom: 28px;
+    }
+    .cds--empty-state__hint {
+      font-size: 12px; color: var(--cds-text-secondary);
+      font-style: italic;
+      padding: 8px 16px;
+      background: var(--cds-layer-01);
+      border: 1px solid var(--cds-border-subtle-00);
+      border-left: 3px solid var(--cds-interactive);
+    }
+
+    /* ── Thread ── */
+    .conv-thread {
+      flex: 1; overflow-y: auto;
+      padding: 32px 0 16px;
+      display: none; flex-direction: column;
+    }
+    .conv-thread.visible { display: flex; }
+    .conv-thread::-webkit-scrollbar { width: 4px; }
+    .conv-thread::-webkit-scrollbar-track { background: transparent; }
+    .conv-thread::-webkit-scrollbar-thumb { background: var(--cds-layer-accent-01); border-radius: 2px; }
+
+    /* ── Message max-width wrapper ── */
+    .msg-wrap { max-width: 760px; width: 100%; margin: 0 auto; padding: 0 32px; }
+
+    /* ── User query bubble ── */
+    .user-msg { margin-bottom: 24px; display: flex; justify-content: flex-end; }
+    .user-msg__bubble {
+      max-width: 72%;
+      background: var(--cds-button-primary);
+      color: var(--cds-text-on-color);
+      padding: 10px 16px;
+      font-size: 14px; line-height: 1.6;
+      border-radius: 18px 18px 4px 18px;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       LAYER 1 — Option selection card
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .l1-card {
+      margin-bottom: 32px;
+    }
+    .l1-card__agent-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 12px;
       font-size: 11px; font-weight: 600; text-transform: uppercase;
       letter-spacing: .32px; color: var(--cds-text-secondary);
-      border-bottom: 1px solid var(--cds-border-subtle-00);
-      display: flex; align-items: center; justify-content: space-between;
     }
-    .cda-sidebar__list { flex: 1; overflow-y: auto; }
-    .cda-history-item {
-      padding: var(--spacing-04) var(--spacing-06);
-      border-bottom: 1px solid #2e2e2e;
-      cursor: pointer;
-      transition: background .1s;
+    .l1-card__agent-row svg { fill: var(--cds-interactive); }
+    .l1-prompt {
+      font-size: 16px; font-weight: 400; color: var(--cds-text-primary);
+      line-height: 1.5; margin-bottom: 16px;
     }
-    .cda-history-item:hover { background: var(--cds-layer-02); }
-    .cda-history-item.active { background: #0043ce22; border-left: 2px solid var(--cds-interactive); }
-    .cda-history-item__query {
-      font-size: 13px; color: var(--cds-text-primary);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .cda-history-item__meta {
-      font-size: 11px; color: var(--cds-text-secondary); margin-top: 2px;
-      display: flex; gap: var(--spacing-04); align-items: center;
-    }
-    .confidence-badge {
-      font-size: 10px; font-family: 'IBM Plex Mono', monospace;
-      padding: 0 5px; border-radius: 2px; font-weight: 600;
-    }
-    .confidence-badge.High  { background:#0e6027; color:#42be65; }
-    .confidence-badge.Medium{ background:#31352e; color:#a7f0ba; }
-    .confidence-badge.Low   { background:#3b1a1a; color:#ff8389; }
-    .cda-sidebar__new {
-      padding: var(--spacing-05) var(--spacing-06);
-      border-top: 1px solid var(--cds-border-subtle-00);
-    }
+    .l1-prompt strong { font-weight: 600; color: var(--cds-link-primary); }
+    .l1-options { display: flex; flex-direction: column; gap: 2px; }
 
-    /* ── Main chat area ──────────────────────────────────── */
-    .cda-main {
-      display: flex; flex-direction: column; overflow: hidden;
-    }
-    .cda-messages {
-      flex: 1; overflow-y: auto;
-      padding: var(--spacing-07) var(--spacing-09);
-      display: flex; flex-direction: column; gap: var(--spacing-06);
-    }
-    .cda-messages::-webkit-scrollbar { width: 4px; }
-    .cda-messages::-webkit-scrollbar-track { background: transparent; }
-    .cda-messages::-webkit-scrollbar-thumb { background: #525252; border-radius: 2px; }
-
-    /* ── Input bar ───────────────────────────────────────── */
-    .cda-input-bar {
+    /* Carbon Tile used as selectable option */
+    .cds--tile-option {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 14px 16px;
       background: var(--cds-layer-01);
-      border-top: 1px solid var(--cds-border-subtle-00);
-      padding: var(--spacing-05) var(--spacing-09);
+      border: 1px solid var(--cds-border-subtle-00);
+      cursor: pointer; text-align: left; width: 100%;
+      font-family: var(--font-sans);
+      transition: background .12s, border-color .12s;
+      position: relative;
     }
-    .cda-input-bar__inner {
-      display: flex; align-items: flex-end; gap: var(--spacing-04);
-      max-width: 860px; margin: 0 auto;
+    .cds--tile-option:hover {
+      background: var(--cds-layer-hover-01);
+      border-color: var(--cds-border-subtle-01);
     }
-    .cda-input-bar__textarea {
-      flex: 1;
+    .cds--tile-option:focus-visible {
+      outline: 2px solid var(--cds-focus);
+      outline-offset: -2px;
+    }
+    .cds--tile-option::before {
+      content: ''; position: absolute;
+      left: 0; top: 0; bottom: 0; width: 3px;
+      background: transparent;
+      transition: background .12s;
+    }
+    .cds--tile-option:hover::before { background: var(--cds-interactive); }
+    .tile-option__num {
+      width: 28px; height: 28px; flex-shrink: 0;
+      border-radius: 50%;
+      border: 1.5px solid var(--cds-border-subtle-01);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+      color: var(--cds-text-secondary);
+      margin-top: 1px;
+      transition: border-color .12s, color .12s, background .12s;
+    }
+    .cds--tile-option:hover .tile-option__num {
+      border-color: var(--cds-interactive);
+      color: var(--cds-interactive);
+    }
+    .tile-option__body { flex: 1; min-width: 0; }
+    .tile-option__label {
+      font-size: 14px; font-weight: 500;
+      color: var(--cds-text-primary);
+      line-height: 1.4; margin-bottom: 3px;
+    }
+    .tile-option__hint {
+      font-size: 12px; color: var(--cds-text-secondary); line-height: 1.4;
+    }
+    .tile-option__arrow {
+      flex-shrink: 0; margin-top: 4px;
+      color: var(--cds-icon-secondary);
+      opacity: 0; transition: opacity .12s, color .12s;
+    }
+    .cds--tile-option:hover .tile-option__arrow { opacity: 1; color: var(--cds-interactive); }
+    .tile-option__arrow svg { width: 16px; height: 16px; fill: currentColor; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       LAYER 2 — Content response card
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .l2-card { margin-bottom: 32px; }
+    .l2-card__agent-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 12px;
+    }
+    .l2-card__agent-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .32px; color: var(--cds-text-secondary);
+    }
+    .l2-card__agent-row svg { fill: var(--cds-interactive); }
+
+    /* Content type tag — Carbon Tag */
+    .cds--tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      height: 18px; padding: 0 8px;
+      font-size: 11px; font-weight: 400; font-family: var(--font-mono);
+      letter-spacing: .32px;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+    .cds--tag--blue   { background: var(--cds-tag-blue-background);  color: var(--cds-tag-blue-color); }
+    .cds--tag--green  { background: var(--cds-tag-green-background);  color: var(--cds-tag-green-color); }
+    .cds--tag--warm-gray { background: #4d3800; color: #f1c21b; }
+    .cds--tag--cool-gray { background: var(--cds-tag-cool-gray-background); color: var(--cds-tag-cool-gray-color); }
+
+    /* Carbon Tile — content tile */
+    .cds--tile {
+      background: var(--cds-layer-01);
+      border: 1px solid var(--cds-border-subtle-00);
+      padding: 20px 24px;
+    }
+
+    /* Content meta bar */
+    .content-meta {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .content-meta__sep { width: 1px; height: 12px; background: var(--cds-border-subtle-01); }
+    .content-meta__text {
+      font-size: 11px; color: var(--cds-text-secondary);
+      font-family: var(--font-mono); letter-spacing: .16px;
+    }
+
+    /* ── Expert content body ── */
+    .cds--content-body { font-size: 14px; line-height: 1.75; color: var(--cds-text-primary); }
+    .cds--content-body h2 {
+      font-size: 18px; font-weight: 600; letter-spacing: -.2px;
+      color: var(--cds-text-primary);
+      margin: 0 0 12px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--cds-border-subtle-00);
+    }
+    .cds--content-body h3 {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .32px;
+      color: var(--cds-text-secondary);
+      margin: 20px 0 8px;
+    }
+    .cds--content-body p { margin-bottom: 12px; }
+    .cds--content-body p:last-child { margin-bottom: 0; }
+    .cds--content-body ul, .cds--content-body ol { padding-left: 20px; margin-bottom: 12px; }
+    .cds--content-body li { margin-bottom: 6px; }
+    .cds--content-body strong { font-weight: 600; color: var(--cds-text-primary); }
+    .cds--content-body em { font-style: italic; color: var(--cds-text-secondary); }
+    .cds--content-body a { color: var(--cds-link-primary); text-decoration: none; }
+    .cds--content-body a:hover { color: var(--cds-link-primary-hover); text-decoration: underline; }
+    .cds--content-body code {
+      font-family: var(--font-mono); font-size: 12px;
       background: var(--cds-layer-02);
       border: 1px solid var(--cds-border-subtle-01);
+      padding: 1px 5px; color: #78a9ff;
+    }
+    .cds--content-body pre {
+      background: #0a0a0a;
+      border: 1px solid var(--cds-border-subtle-01);
+      padding: 16px 20px; overflow-x: auto; margin: 14px 0;
+    }
+    .cds--content-body pre code {
+      background: none; border: none; padding: 0;
+      font-size: 13px; color: #e6edf3; line-height: 1.7;
+    }
+    /* Code copy header */
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--cds-layer-02);
+      border: 1px solid var(--cds-border-subtle-01);
+      border-bottom: none;
+      padding: 6px 12px;
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--cds-text-secondary);
+    }
+    .code-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--cds-text-secondary); display: flex; align-items: center; gap: 4px;
+      padding: 2px 6px;
+      transition: color .1s;
+    }
+    .code-copy-btn:hover { color: var(--cds-text-primary); }
+    .code-copy-btn svg { width: 12px; height: 12px; fill: currentColor; }
+    .cds--content-body table {
+      width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px;
+    }
+    .cds--content-body th {
+      background: var(--cds-layer-02);
+      padding: 8px 12px; text-align: left;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .32px; color: var(--cds-text-secondary);
+      border-bottom: 2px solid var(--cds-border-subtle-01);
+    }
+    .cds--content-body td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--cds-border-subtle-00);
+      vertical-align: top;
+    }
+    .cds--content-body tr:last-child td { border-bottom: none; }
+    .cds--content-body blockquote {
+      border-left: 3px solid var(--cds-interactive);
+      padding: 10px 16px;
+      background: #0f2040;
+      margin: 14px 0;
+      font-size: 13.5px; color: var(--cds-text-secondary);
+    }
+    .cds--content-body hr {
+      border: none; border-top: 1px solid var(--cds-border-subtle-00); margin: 20px 0;
+    }
+
+    /* Layer 2 has no next-steps block — "See more" is a link in the content body */
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SKELETON LOADING
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .cds--skeleton {
+      background: var(--cds-layer-01);
+      border: 1px solid var(--cds-border-subtle-00);
+      padding: 20px 24px;
+      margin-bottom: 32px;
+    }
+    .cds--skeleton__agent-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+    }
+    .skel-circle {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--cds-skeleton-element);
+      animation: shimmer 1.5s infinite;
+    }
+    .skel-line {
+      height: 12px; border-radius: 0;
+      background: var(--cds-skeleton-element);
+      animation: shimmer 1.5s infinite;
+      margin-bottom: 10px;
+    }
+    .skel-line:last-child { margin-bottom: 0; }
+    @keyframes shimmer {
+      0%   { opacity: .5; }
+      50%  { opacity: 1; }
+      100% { opacity: .5; }
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       ERROR NOTIFICATION — Carbon InlineNotification
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .cds--inline-notification {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 16px;
+      background: #3b0a0a;
+      border: 1px solid #a2191f;
+      border-left: 3px solid var(--cds-support-error);
+      margin-bottom: 16px;
+    }
+    .cds--inline-notification svg { width: 16px; height: 16px; fill: var(--cds-support-error); flex-shrink: 0; margin-top: 1px; }
+    .cds--inline-notification__text { font-size: 13px; color: #ffb3b8; line-height: 1.5; }
+    .cds--inline-notification__title { font-weight: 600; color: #ffd7d9; margin-bottom: 2px; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       INPUT AREA — Carbon TextArea + Button
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .input-area {
+      flex-shrink: 0;
+      background: var(--cds-layer-01);
+      border-top: 1px solid var(--cds-border-subtle-00);
+      padding: 16px 32px 20px;
+    }
+    .input-area__inner { max-width: 760px; margin: 0 auto; }
+
+    /* Intent framing row */
+    .input-framing {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 10px; flex-wrap: wrap;
+    }
+    .input-framing__label {
+      font-size: 11px; color: var(--cds-text-secondary);
+      font-weight: 600; text-transform: uppercase;
+      letter-spacing: .32px; margin-right: 4px;
+    }
+    .cds--tag-interactive {
+      display: inline-flex; align-items: center;
+      height: 24px; padding: 0 10px;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 400;
+      background: transparent;
+      border: 1px solid var(--cds-border-subtle-01);
+      color: var(--cds-text-secondary);
+      cursor: pointer;
+      transition: all .1s;
+    }
+    .cds--tag-interactive:hover { background: var(--cds-background-hover); color: var(--cds-text-primary); border-color: var(--cds-border-strong-01); }
+    .cds--tag-interactive.active {
+      background: var(--cds-button-primary);
+      border-color: var(--cds-button-primary);
+      color: var(--cds-text-on-color);
+    }
+
+    /* Text input row */
+    .input-row {
+      display: flex; gap: 0; align-items: flex-end;
+    }
+    .cds--text-area-wrapper { flex: 1; position: relative; }
+    .cds--text-area {
+      width: 100%; display: block;
+      background: var(--cds-background);
+      border: 2px solid var(--cds-border-subtle-01);
+      border-right: none;
       color: var(--cds-text-primary);
-      padding: var(--spacing-04) var(--spacing-05);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 14px; line-height: 1.5;
-      border-radius: 0;
-      resize: none; min-height: 44px; max-height: 180px;
+      font-family: var(--font-sans); font-size: 14px; line-height: 1.5;
+      padding: 10px 14px;
+      resize: none;
+      min-height: 48px; max-height: 140px;
       outline: none;
       transition: border-color .15s;
     }
-    .cda-input-bar__textarea:focus { border-color: var(--cds-interactive); }
-    .cda-input-bar__textarea::placeholder { color: var(--cds-text-placeholder); }
-    .cda-input-bar__controls {
-      display: flex; flex-direction: column; gap: var(--spacing-03);
-    }
-    .cda-select {
-      background: var(--cds-layer-02);
-      border: 1px solid var(--cds-border-subtle-01);
-      color: var(--cds-text-primary);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 12px; padding: 4px 8px;
-      outline: none; cursor: pointer;
-    }
-    .cda-btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      gap: 6px;
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 14px; font-weight: 400;
-      padding: 0 var(--spacing-06);
-      height: 44px;
-      border: none; cursor: pointer;
-      transition: background .15s;
-      outline: none;
-      white-space: nowrap;
-    }
-    .cda-btn--primary {
-      background: var(--cds-interactive); color: #fff;
-    }
-    .cda-btn--primary:hover { background: var(--cds-interactive-hover); }
-    .cda-btn--primary:disabled { background: #525252; cursor: not-allowed; }
-    .cda-btn--ghost {
-      background: transparent; color: var(--cds-interactive);
-      border: 1px solid var(--cds-interactive);
-    }
-    .cda-btn--ghost:hover { background: #0043ce22; }
-    .cda-btn--danger-ghost {
-      background: transparent; color: #ff8389;
-      border: 1px solid #fa4d56;
-    }
-    .cda-btn--danger-ghost:hover { background: #3b1a1a; }
-    .cda-btn--sm { height: 32px; font-size: 12px; padding: 0 var(--spacing-05); }
+    .cds--text-area:focus { border-color: var(--cds-focus-inset); }
+    .cds--text-area::placeholder { color: var(--cds-text-placeholder); }
+    .cds--text-area:disabled { opacity: .4; cursor: not-allowed; }
 
-    /* ── Message bubbles ─────────────────────────────────── */
-    .msg { max-width: 860px; margin: 0 auto; width: 100%; }
+    .cds--btn--primary {
+      display: flex; align-items: center; justify-content: center;
+      height: 48px; width: 64px; flex-shrink: 0;
+      background: var(--cds-button-primary);
+      border: 2px solid var(--cds-button-primary);
+      color: var(--cds-text-on-color);
+      cursor: pointer;
+      transition: background .1s, border-color .1s;
+    }
+    .cds--btn--primary:hover { background: var(--cds-button-primary-hover); border-color: var(--cds-button-primary-hover); }
+    .cds--btn--primary:disabled { background: var(--cds-border-subtle-01); border-color: var(--cds-border-subtle-01); cursor: not-allowed; }
+    .cds--btn--primary svg { width: 20px; height: 20px; fill: currentColor; }
 
-    .msg--user { display: flex; justify-content: flex-end; }
-    .msg--user .msg__bubble {
-      background: #0043ce; color: #fff;
-      padding: var(--spacing-04) var(--spacing-05);
-      max-width: 70%; font-size: 14px; line-height: 1.6;
+    /* Locked state notice */
+    .input-locked {
+      display: none; font-size: 12px; font-style: italic;
+      color: var(--cds-text-secondary); margin-top: 8px; text-align: center;
     }
+    .input-locked.visible { display: block; }
 
-    .msg--agent { display: flex; flex-direction: column; gap: var(--spacing-04); }
-    .msg--agent .msg__avatar {
-      display: flex; align-items: center; gap: var(--spacing-03);
-      font-size: 11px; color: var(--cds-text-secondary); font-weight: 600;
-      text-transform: uppercase; letter-spacing: .32px;
+    /* Status bar below input */
+    .input-status {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 8px; font-size: 11px; color: var(--cds-text-secondary);
+      font-family: var(--font-mono);
     }
-    .msg--agent .msg__avatar svg { width: 16px; height: 16px; fill: var(--cds-interactive); }
+    .input-status__sep { width: 1px; height: 10px; background: var(--cds-border-subtle-01); }
 
-    /* ── Carbon Tile ─────────────────────────────────────── */
-    .cds-tile {
-      background: var(--cds-layer-01);
-      border: 1px solid var(--cds-border-subtle-00);
-      padding: var(--spacing-06);
+    /* Focus ring for keyboard nav */
+    :focus-visible {
+      outline: 2px solid var(--cds-focus);
+      outline-offset: -2px;
     }
-    .cds-tile--insight {
-      background: #0043ce11;
-      border-left: 3px solid var(--cds-interactive);
-      padding: var(--spacing-05) var(--spacing-06);
-      font-size: 14px; line-height: 1.6; color: var(--cds-text-secondary);
-      margin-bottom: var(--spacing-05);
-    }
-    .cds-tile--insight strong { color: #78a9ff; }
-
-    /* ── Markdown content ────────────────────────────────── */
-    .content-body { font-size: 14px; line-height: 1.7; color: var(--cds-text-primary); }
-    .content-body h1,.content-body h2 {
-      font-size: 18px; font-weight: 600; margin: var(--spacing-06) 0 var(--spacing-04);
-      color: var(--cds-text-primary); border-bottom: 1px solid var(--cds-border-subtle-00);
-      padding-bottom: var(--spacing-03);
-    }
-    .content-body h3 { font-size: 15px; font-weight: 600; margin: var(--spacing-05) 0 var(--spacing-03); }
-    .content-body p { margin: 0 0 var(--spacing-04); }
-    .content-body ul,.content-body ol { margin: 0 0 var(--spacing-04); padding-left: 1.5rem; }
-    .content-body li { margin-bottom: var(--spacing-02); }
-    .content-body pre {
-      background: #0a0a0a; border: 1px solid var(--cds-border-subtle-01);
-      padding: var(--spacing-05); overflow-x: auto;
-      font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.6;
-      margin: var(--spacing-05) 0;
-    }
-    .content-body code:not(pre code) {
-      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
-      background: #393939; padding: 1px 5px; color: #78a9ff;
-    }
-    .content-body blockquote {
-      border-left: 3px solid var(--cds-interactive);
-      margin: var(--spacing-05) 0; padding: var(--spacing-04) var(--spacing-06);
-      background: #0043ce0d; color: var(--cds-text-secondary);
-    }
-    .content-body a { color: #78a9ff; text-decoration: none; }
-    .content-body a:hover { text-decoration: underline; }
-    .content-body strong { color: #f4f4f4; font-weight: 600; }
-
-    /* ── Media tiles ─────────────────────────────────────── */
-    .media-grid {
-      display: flex; flex-wrap: wrap; gap: var(--spacing-04); margin-top: var(--spacing-05);
-    }
-    .media-tile {
-      background: var(--cds-layer-02);
-      border: 1px solid var(--cds-border-subtle-01);
-      padding: var(--spacing-04);
-      flex: 1; min-width: 180px; max-width: 260px;
-    }
-    .media-tile img {
-      width: 100%; height: 120px; object-fit: cover;
-      background: #393939; display: block;
-    }
-    .media-tile__label {
-      font-size: 12px; color: var(--cds-text-secondary); margin-top: var(--spacing-03);
-    }
-    .media-tile--video { display: flex; align-items: center; gap: var(--spacing-04); }
-    .media-tile--video .play-icon {
-      width: 36px; height: 36px; background: var(--cds-interactive);
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .media-tile--video .play-icon svg { width: 14px; height: 14px; fill: #fff; margin-left: 2px; }
-
-    /* ── Sources section ─────────────────────────────────── */
-    .sources-list { margin-top: var(--spacing-05); }
-    .sources-list__head {
-      font-size: 11px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .32px; color: var(--cds-text-secondary); margin-bottom: var(--spacing-04);
-    }
-    .source-item {
-      display: flex; align-items: center; gap: var(--spacing-04);
-      padding: var(--spacing-03) var(--spacing-05);
-      background: var(--cds-layer-02);
-      border-left: 2px solid #525252;
-      margin-bottom: var(--spacing-03);
-      font-size: 12px;
-    }
-    .source-item__path { flex: 1; color: #78a9ff; word-break: break-all; }
-    .source-item__score {
-      font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--cds-text-secondary);
-      white-space: nowrap;
-    }
-
-    /* ── Interactive options ─────────────────────────────── */
-    .options-bar {
-      display: flex; flex-wrap: wrap; gap: var(--spacing-04);
-      margin-top: var(--spacing-05);
-      padding-top: var(--spacing-05);
-      border-top: 1px solid var(--cds-border-subtle-00);
-    }
-
-    /* ── Clarify card ────────────────────────────────────── */
-    .clarify-card {
-      background: var(--cds-layer-01);
-      border: 1px solid #0043ce;
-      padding: var(--spacing-06);
-    }
-    .clarify-card__title {
-      font-size: 12px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .32px; color: #78a9ff; margin-bottom: var(--spacing-05);
-    }
-    .clarify-q { margin-bottom: var(--spacing-04); font-size: 14px; }
-
-    /* ── Low confidence notice ───────────────────────────── */
-    .low-conf-notice {
-      background: #3b1a1a;
-      border: 1px solid #fa4d56;
-      padding: var(--spacing-05) var(--spacing-06);
-      display: flex; align-items: flex-start; gap: var(--spacing-05);
-      margin-bottom: var(--spacing-05);
-    }
-    .low-conf-notice svg { width: 16px; height: 16px; fill: #ff8389; flex-shrink: 0; margin-top: 2px; }
-    .low-conf-notice__text { font-size: 13px; color: #ffb3b8; }
-
-    /* ── Loading skeleton ────────────────────────────────── */
-    .skeleton-line {
-      height: 14px; background: var(--cds-layer-02);
-      border-radius: 2px; margin-bottom: 8px;
-      animation: shimmer 1.5s infinite;
-    }
-    @keyframes shimmer {
-      0%   { opacity: .4; }
-      50%  { opacity: .8; }
-      100% { opacity: .4; }
-    }
-
-    /* ── Divider ─────────────────────────────────────────── */
-    .iter-divider {
-      display: flex; align-items: center; gap: var(--spacing-04);
-      margin: var(--spacing-04) 0; color: var(--cds-text-secondary); font-size: 11px;
-    }
-    .iter-divider::before, .iter-divider::after {
-      content: ''; flex: 1; height: 1px; background: var(--cds-border-subtle-00);
-    }
-
-    /* ── Human review banner ─────────────────────────────── */
-    .human-review-banner {
-      background: #31352e; border: 1px solid var(--cds-support-success);
-      padding: var(--spacing-05) var(--spacing-06);
-      display: flex; align-items: center; gap: var(--spacing-05);
-      margin-top: var(--spacing-05);
-    }
-    .human-review-banner svg { width: 16px; height: 16px; fill: var(--cds-support-success); flex-shrink: 0; }
-    .human-review-banner__text { font-size: 13px; color: #a7f0ba; }
-
-    /* ── Empty state ─────────────────────────────────────── */
-    .empty-state {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: var(--spacing-06);
-      color: var(--cds-text-secondary); text-align: center; padding: var(--spacing-09);
-    }
-    .empty-state svg { width: 48px; height: 48px; fill: #525252; }
-    .empty-state__title { font-size: 20px; font-weight: 300; color: var(--cds-text-primary); }
-    .empty-state__body  { font-size: 14px; max-width: 420px; line-height: 1.6; }
-    .suggestion-chips { display: flex; flex-wrap: wrap; gap: var(--spacing-03); justify-content: center; margin-top: var(--spacing-04); }
-    .chip {
-      background: var(--cds-layer-01);
-      border: 1px solid var(--cds-border-subtle-01);
-      color: var(--cds-interactive);
-      font-size: 12px; padding: var(--spacing-03) var(--spacing-05);
-      cursor: pointer; transition: background .1s;
-    }
-    .chip:hover { background: var(--cds-layer-02); }
-
-    /* ── Read time / iteration tag ───────────────────────── */
-    .meta-row {
-      display: flex; align-items: center; gap: var(--spacing-05);
-      font-size: 11px; color: var(--cds-text-secondary); margin-bottom: var(--spacing-04);
-    }
-    .meta-row .dot { width: 3px; height: 3px; background: #525252; border-radius: 50%; }
-
-    /* ── Validation report ───────────────────────────────── */
-    .val-report {
-      display: flex; gap: var(--spacing-04); margin-top: var(--spacing-05);
-      padding: var(--spacing-04) var(--spacing-05);
-      background: var(--cds-layer-02);
-      font-size: 11px; color: var(--cds-text-secondary);
-      flex-wrap: wrap;
-    }
-    .val-score { display: flex; align-items: center; gap: 4px; }
-    .val-dots { display: flex; gap: 2px; }
-    .val-dot { width: 8px; height: 8px; border-radius: 1px; background: #393939; }
-    .val-dot.on { background: var(--cds-interactive); }
-    .val-a11y-pass { color: var(--cds-support-success); }
-    .val-a11y-fail { color: var(--cds-support-error); }
   </style>
 </head>
 <body>
 
-<!-- ── Header ── -->
-<header class="cda-header" role="banner">
-  <a class="cda-header__logo" href="#" aria-label="Conversation Design Assistant home">
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2zm-1 6h2v10h-2zm1 14a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>
-    </svg>
-    <span class="cda-header__name">Conversation Design Assistant</span>
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ HEADER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<header class="cds--header" role="banner">
+  <a class="cds--header__name" href="#" aria-label="Conversation Design Assistant home">
+    <div class="cds--header__logo" aria-hidden="true">
+      <svg viewBox="0 0 16 16"><path d="M8 1L1 4.5v7L8 15l7-3.5v-7L8 1zm0 1.8l5 2.5v5.6l-5 2.5-5-2.5V5.3l5-2.5z"/></svg>
+    </div>
+    Conversation Design Assistant
   </a>
-  <span class="cda-header__separator"></span>
-  <span class="cda-header__tag" id="mockTag">MOCK</span>
-</header>
 
-<!-- ── Layout ── -->
-<div class="cda-layout">
-
-  <!-- ── Sidebar ── -->
-  <nav class="cda-sidebar" aria-label="Conversation history">
-    <div class="cda-sidebar__head">
-      <span>History</span>
-      <button class="cda-btn cda-btn--ghost cda-btn--sm" id="clearHistoryBtn" aria-label="Clear history">Clear</button>
-    </div>
-    <ul class="cda-sidebar__list" id="historyList" role="list" aria-label="Previous conversations"></ul>
-    <div class="cda-sidebar__new">
-      <button class="cda-btn cda-btn--primary" style="width:100%" id="newChatBtn" aria-label="Start new conversation">
-        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M9 7V1H7v6H1v2h6v6h2V9h6V7z"/></svg>
-        New conversation
-      </button>
-    </div>
+  <nav class="cds--header__nav" aria-label="Application navigation">
+    <div class="cds--header__nav-item active" role="menuitem" tabindex="0">Assistant</div>
+    <div class="cds--header__nav-item" role="menuitem" tabindex="0">Documentation</div>
+    <div class="cds--header__nav-item" role="menuitem" tabindex="0">About</div>
   </nav>
 
-  <!-- ── Main ── -->
-  <main class="cda-main" aria-label="Conversation">
+  <div class="cds--header__global">
+    <div class="cds--header__status-tag" id="statusTag" aria-live="polite">
+      <span class="dot"></span>
+      <span id="statusLabel">CONNECTING</span>
+    </div>
+    <button class="cds--header__action" aria-label="Settings" title="Settings">
+      <svg viewBox="0 0 32 32"><path d="M27 16.76v-1.53l1.92-1.68A2 2 0 0029.3 11l-2.36-4a2 2 0 00-2.44-.84l-2.43.82a11.35 11.35 0 00-1.31-.75l-.51-2.52a2 2 0 00-2-1.61h-4.68a2 2 0 00-1.95 1.61l-.51 2.52a11.48 11.48 0 00-1.32.75l-2.38-.82a2 2 0 00-2.44.84l-2.36 4a2 2 0 00.44 2.51L7 16.23v1.54l-1.89 1.68a2 2 0 00-.44 2.55l2.36 4a2 2 0 002.44.84l2.43-.82a11.35 11.35 0 001.31.75l.51 2.52a2 2 0 002 1.61h4.72a2 2 0 002-1.61l.51-2.52a11.48 11.48 0 001.32-.75l2.42.82a2 2 0 002.44-.84l2.36-4a2 2 0 00-.44-2.55zM16 22a6 6 0 116-6 6 6 0 01-6 6z"/></svg>
+    </button>
+    <button class="cds--header__action" aria-label="Help" title="Help">
+      <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 22v-2M16 8a4 4 0 014 4c0 2-2 3-3 4s-1 2-1 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <button class="cds--header__action" aria-label="User profile" title="User profile">
+      <svg viewBox="0 0 32 32"><path d="M16 4a5 5 0 110 10A5 5 0 0116 4zm0 14c5.33 0 16 2.67 16 8v2H0v-2c0-5.33 10.67-8 16-8z"/></svg>
+    </button>
+  </div>
+</header>
 
-    <!-- Messages -->
-    <section class="cda-messages" id="messages" aria-live="polite" aria-label="Messages">
-      <!-- Empty state -->
-      <div class="empty-state" id="emptyState" aria-label="Welcome screen">
-        <svg viewBox="0 0 32 32" aria-hidden="true">
-          <path d="M28 6H4a2 2 0 00-2 2v16a2 2 0 002 2h4v4l6-4h14a2 2 0 002-2V8a2 2 0 00-2-2zM8 18H6v-2h2zm0-4H6v-2h2zm14 0H10v-2h12zm0-4H10v-2h12z"/>
-        </svg>
-        <div class="empty-state__title">What would you like to know?</div>
-        <div class="empty-state__body">Ask a question about Microsoft documentation, OAuth 2.0 setup, device policies, or any technical how-to. The assistant retrieves live MS Learn content and synthesises a structured answer.</div>
-        <div class="suggestion-chips" role="list" aria-label="Example questions">
-          <button class="chip" role="listitem" data-query="How do I configure OAuth 2.0 for Azure AD in Node.js?">OAuth 2.0 + Azure AD in Node.js</button>
-          <button class="chip" role="listitem" data-query="How do I set up authentication?">Set up authentication</button>
-          <button class="chip" role="listitem" data-query="Show me Contoso device reset policy">Contoso device reset policy</button>
-          <button class="chip" role="listitem" data-query="What is OpenID Connect and when should I use it?">What is OpenID Connect?</button>
-        </div>
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ LAYOUT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="app-layout">
+
+  <!-- ━━━━━━━━━━━━━━━━ LEFT PANEL ━━━━━━━━━━━━━━━━ -->
+  <aside class="cds--side-nav" aria-label="Query settings and examples">
+
+    <div class="side-nav__section">
+      What are you looking for?
+      <p>The assistant retrieves documentation and presents it as an expert-written answer for your role.</p>
+    </div>
+
+    <div class="side-nav__group">
+      <span class="side-nav__group-label" id="aud-label">I am a…</span>
+      <div class="aud-grid" role="radiogroup" aria-labelledby="aud-label">
+        <button class="cds--tag-btn selected" data-aud="developer" role="radio" aria-checked="true">Developer</button>
+        <button class="cds--tag-btn" data-aud="admin" role="radio" aria-checked="false">IT Admin</button>
+        <button class="cds--tag-btn" data-aud="writer" role="radio" aria-checked="false">Writer</button>
+        <button class="cds--tag-btn" data-aud="manager" role="radio" aria-checked="false">Manager</button>
+        <button class="cds--tag-btn" data-aud="beginner" role="radio" aria-checked="false">Beginner</button>
+        <button class="cds--tag-btn" data-aud="advanced" role="radio" aria-checked="false">Advanced</button>
       </div>
-    </section>
+    </div>
 
-    <!-- Input bar -->
-    <div class="cda-input-bar" role="form" aria-label="Send a message">
-      <div class="cda-input-bar__inner">
-        <textarea
-          id="userInput"
-          class="cda-input-bar__textarea"
-          rows="1"
-          placeholder="Ask a question about Microsoft documentation…"
-          aria-label="Your question"
-          aria-multiline="true"
-        ></textarea>
-        <div class="cda-input-bar__controls">
-          <select class="cda-select" id="audienceSelect" aria-label="Audience">
-            <option value="developer">Developer</option>
-            <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
-          </select>
-          <button class="cda-btn cda-btn--primary" id="sendBtn" aria-label="Send question">
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M2.007 2.004L14 8 2.007 13.996 3 9.5 10 8 3 6.5z"/></svg>
-            Send
+    <div class="side-nav__group">
+      <span class="side-nav__group-label" id="depth-label">Depth</span>
+      <div class="depth-row" role="radiogroup" aria-labelledby="depth-label">
+        <button class="cds--tag-btn" data-depth="summary" role="radio" aria-checked="false">Summary</button>
+        <button class="cds--tag-btn selected" data-depth="standard" role="radio" aria-checked="true">Standard</button>
+        <button class="cds--tag-btn" data-depth="detailed" role="radio" aria-checked="false">Detailed</button>
+      </div>
+    </div>
+
+    <div class="side-nav__examples">
+      <span class="side-nav__examples-label">Try asking</span>
+
+      <button class="cds--side-nav__item" data-query="How do I configure OAuth 2.0 for my web application?">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.5 3.5h1v5h-1v-5zm0 6h1v1.5h-1V10.5z"/></svg>
+        Configure OAuth 2.0 for a web app
+      </button>
+      <button class="cds--side-nav__item" data-query="What is the difference between authentication and authorisation?">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.5 3.5h1v5h-1v-5zm0 6h1v1.5h-1V10.5z"/></svg>
+        Authentication vs authorisation
+      </button>
+      <button class="cds--side-nav__item" data-query="Set up multi-factor authentication for my organisation">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.5 3.5h1v5h-1v-5zm0 6h1v1.5h-1V10.5z"/></svg>
+        Set up MFA for my organisation
+      </button>
+      <button class="cds--side-nav__item" data-query="What permissions does my app need to read user calendar events?">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.5 3.5h1v5h-1v-5zm0 6h1v1.5h-1V10.5z"/></svg>
+        Permissions to read calendar events
+      </button>
+      <button class="cds--side-nav__item" data-query="Walk me through registering an application in Microsoft Entra ID">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.5 3.5h1v5h-1v-5zm0 6h1v1.5h-1V10.5z"/></svg>
+        Register an app in Entra ID
+      </button>
+      <button class="cds--side-nav__item" data-query="How do I troubleshoot a 401 Unauthorized error on my API calls?">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.5 3.5h1v5h-1v-5zm0 6h1v1.5h-1V10.5z"/></svg>
+        Troubleshoot 401 Unauthorized errors
+      </button>
+      <button class="cds--side-nav__item" data-query="Show me an MSAL token acquisition code example in Python">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.5 3.5h1v5h-1v-5zm0 6h1v1.5h-1V10.5z"/></svg>
+        MSAL token acquisition in Python
+      </button>
+    </div>
+
+    <div class="side-nav__footer">
+      <strong>How it works</strong>
+      Layer 1 presents the most relevant angles on your query. You select the one that matches. Layer 2 delivers expert-structured content — no raw links, no noise.
+    </div>
+
+  </aside>
+
+  <!-- ━━━━━━━━━━━━━━━━ CONVERSATION AREA ━━━━━━━━━━━━━━━━ -->
+  <main class="conv-area" aria-label="Conversation">
+
+    <!-- Welcome -->
+    <div class="cds--empty-state" id="welcome" aria-label="Welcome screen">
+      <div class="cds--empty-state__icon" aria-hidden="true">
+        <svg viewBox="0 0 32 32"><path d="M28 6H4a2 2 0 00-2 2v16a2 2 0 002 2h4v4l6-4h14a2 2 0 002-2V8a2 2 0 00-2-2zM8 18H6v-2h2zm0-4H6v-2h2zm14 0H10v-2h12zm0-4H10v-2h12z"/></svg>
+      </div>
+      <h1 class="cds--empty-state__heading">What would you like to know?</h1>
+      <p class="cds--empty-state__body">
+        Ask any question about documentation, technical processes, or product knowledge.
+        The assistant finds the right content and presents it as a structured, expert answer — tailored to your role.
+      </p>
+      <div class="cds--empty-state__hint">
+        Select your audience and depth on the left, then type your question below.
+      </div>
+    </div>
+
+    <!-- Conversation thread -->
+    <div class="conv-thread" id="thread" aria-live="polite" role="log" aria-label="Conversation thread"></div>
+
+    <!-- Input area -->
+    <div class="input-area" role="form" aria-label="Ask a question">
+      <div class="input-area__inner">
+
+        <!-- Intent framing -->
+        <div class="input-framing" role="group" aria-label="Question framing">
+          <span class="input-framing__label">Frame as</span>
+          <button class="cds--tag-interactive active" data-intent="">Open question</button>
+          <button class="cds--tag-interactive" data-intent="How to">How to</button>
+          <button class="cds--tag-interactive" data-intent="What is">What is</button>
+          <button class="cds--tag-interactive" data-intent="Troubleshoot">Troubleshoot</button>
+          <button class="cds--tag-interactive" data-intent="Show me code for">Code example</button>
+          <button class="cds--tag-interactive" data-intent="Compare">Compare</button>
+        </div>
+
+        <!-- Text input + send -->
+        <div class="input-row">
+          <div class="cds--text-area-wrapper">
+            <textarea
+              class="cds--text-area"
+              id="userInput"
+              rows="1"
+              placeholder="Describe your question or task…"
+              aria-label="Your question or task"
+              maxlength="1000"
+            ></textarea>
+          </div>
+          <button class="cds--btn--primary" id="sendBtn" aria-label="Send question">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M27.71 4.29a1 1 0 00-1.05-.23l-22 8a1 1 0 000 1.87L13 17.6V28a1 1 0 001.79.62l5-6.19 5.45 2.1a1 1 0 001.27-.76l3-18a1 1 0 00-.8-1.47z"/></svg>
           </button>
         </div>
+
+        <div class="input-locked" id="inputLocked">
+          Select a next step from the options above to continue this conversation.
+        </div>
+
+        <div class="input-status">
+          <span id="modeStatus">AI Challenge</span>
+          <span class="input-status__sep"></span>
+          <span>Content Representation Agent</span>
+          <span class="input-status__sep"></span>
+          <span>Two-layer conversation design</span>
+        </div>
+
       </div>
     </div>
 
@@ -497,523 +851,454 @@
 </div>
 
 <script>
-// ---------------------------------------------------------------------------
+// ══════════════════════════════════════════════════════════════════════════════
 // State
-// ---------------------------------------------------------------------------
-const API = 'http://localhost:8000';
+// ══════════════════════════════════════════════════════════════════════════════
+const API     = 'http://localhost:8000';
+let audience  = 'developer';
+let depth     = 'standard';
+let intentPfx = '';
 let sessionId = null;
-let iterationCount = 0;
-let history = [];
+let locked    = false;
+let seenUrls  = [];
 
-// ---------------------------------------------------------------------------
-// DOM refs
-// ---------------------------------------------------------------------------
-const messagesEl   = document.getElementById('messages');
-const emptyState   = document.getElementById('emptyState');
-const userInputEl  = document.getElementById('userInput');
-const sendBtn      = document.getElementById('sendBtn');
-const audienceSel  = document.getElementById('audienceSelect');
-const historyList  = document.getElementById('historyList');
-const newChatBtn   = document.getElementById('newChatBtn');
-const clearHistBtn = document.getElementById('clearHistoryBtn');
-const mockTag      = document.getElementById('mockTag');
+// ══════════════════════════════════════════════════════════════════════════════
+// DOM
+// ══════════════════════════════════════════════════════════════════════════════
+const welcomeEl   = document.getElementById('welcome');
+const threadEl    = document.getElementById('thread');
+const inputEl     = document.getElementById('userInput');
+const sendBtnEl   = document.getElementById('sendBtn');
+const statusTag   = document.getElementById('statusTag');
+const statusLabel = document.getElementById('statusLabel');
+const inputLocked = document.getElementById('inputLocked');
 
-// ---------------------------------------------------------------------------
-// Startup — check health
-// ---------------------------------------------------------------------------
+// ══════════════════════════════════════════════════════════════════════════════
+// Startup — health check
+// ══════════════════════════════════════════════════════════════════════════════
 fetch(API + '/health')
   .then(r => r.json())
   .then(d => {
     if (d.mock_mode === 'false') {
-      mockTag.textContent = 'LIVE';
-      mockTag.style.background = '#0e602733';
-      mockTag.style.color = '#42be65';
-      mockTag.style.borderColor = '#24a148';
+      setStatus('LIVE', '#0e6027', '#42be65', '#a7f0ba');
+    } else {
+      setStatus('MOCK', '#0043ce', '#a6c8ff', '#4589ff');
     }
   })
-  .catch(() => {
-    mockTag.textContent = 'OFFLINE';
-    mockTag.style.background = '#3b1a1a';
-    mockTag.style.color = '#ff8389';
-    mockTag.style.borderColor = '#fa4d56';
-  });
+  .catch(() => setStatus('OFFLINE', '#750e13', '#ff8389', '#a2191f'));
 
-// ---------------------------------------------------------------------------
-// Session helpers
-// ---------------------------------------------------------------------------
+function setStatus(text, bg, color, dot) {
+  statusLabel.textContent = text;
+  statusTag.style.background = bg;
+  statusTag.style.color = color;
+  const dotEl = statusTag.querySelector('.dot');
+  if (dotEl) dotEl.style.background = dot;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Audience
+// ══════════════════════════════════════════════════════════════════════════════
+document.querySelectorAll('[data-aud]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (locked) return;
+    document.querySelectorAll('[data-aud]').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-checked','false'); });
+    btn.classList.add('selected'); btn.setAttribute('aria-checked','true');
+    audience = btn.dataset.aud;
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Depth
+// ══════════════════════════════════════════════════════════════════════════════
+document.querySelectorAll('[data-depth]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (locked) return;
+    document.querySelectorAll('[data-depth]').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-checked','false'); });
+    btn.classList.add('selected'); btn.setAttribute('aria-checked','true');
+    depth = btn.dataset.depth;
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Intent framing chips
+// ══════════════════════════════════════════════════════════════════════════════
+document.querySelectorAll('.cds--tag-interactive').forEach(chip => {
+  chip.addEventListener('click', () => {
+    if (locked) return;
+    document.querySelectorAll('.cds--tag-interactive').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    intentPfx = chip.dataset.intent;
+    inputEl.focus();
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Example prompts
+// ══════════════════════════════════════════════════════════════════════════════
+document.querySelectorAll('.cds--side-nav__item[data-query]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (locked) return;
+    inputEl.value = btn.dataset.query;
+    resize(); inputEl.focus();
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Textarea
+// ══════════════════════════════════════════════════════════════════════════════
+function resize() {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
+}
+inputEl.addEventListener('input', resize);
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+sendBtnEl.addEventListener('click', send);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Lock input — single session, navigate only via options
+// ══════════════════════════════════════════════════════════════════════════════
+function lock() {
+  locked = true;
+  inputEl.disabled = true;
+  sendBtnEl.disabled = true;
+  inputLocked.classList.add('visible');
+  document.querySelectorAll('[data-aud],[data-depth],.cds--tag-interactive,.cds--side-nav__item').forEach(el => {
+    el.style.opacity = '.35';
+    el.style.pointerEvents = 'none';
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Session
+// ══════════════════════════════════════════════════════════════════════════════
 function newSession() {
   sessionId = 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
-  iterationCount = 0;
+  seenUrls = [];
 }
 
-function hideEmpty() {
-  if (emptyState) { emptyState.style.display = 'none'; }
-}
-
-function scrollBottom() {
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-// ---------------------------------------------------------------------------
-// History sidebar
-// ---------------------------------------------------------------------------
-function addHistoryItem(query, confidence) {
-  history.unshift({ query, confidence, sessionId });
-  renderHistory();
-}
-
-function renderHistory() {
-  historyList.innerHTML = '';
-  history.forEach((item, i) => {
-    const li = document.createElement('li');
-    li.className = 'cda-history-item' + (i === 0 ? ' active' : '');
-    li.setAttribute('role', 'listitem');
-    li.setAttribute('aria-label', 'Previous query: ' + item.query);
-    li.innerHTML = `
-      <div class="cda-history-item__query" title="${esc(item.query)}">${esc(item.query)}</div>
-      <div class="cda-history-item__meta">
-        <span class="confidence-badge ${item.confidence}">${item.confidence}</span>
-        <span>${item.sessionId.slice(-6)}</span>
-      </div>`;
-    historyList.appendChild(li);
-  });
-}
-
-// ---------------------------------------------------------------------------
+// ══════════════════════════════════════════════════════════════════════════════
 // Escape HTML
-// ---------------------------------------------------------------------------
+// ══════════════════════════════════════════════════════════════════════════════
 function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ---------------------------------------------------------------------------
-// Simple Markdown → HTML renderer
-// ---------------------------------------------------------------------------
-function mdToHtml(md) {
-  if (!md) return '';
-  let html = md;
-  // Code blocks (must go before inline code)
-  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
-    const l = lang || 'text';
-    return `<pre><code class="language-${esc(l)}">${esc(code.trim())}</code></pre>`;
+// ══════════════════════════════════════════════════════════════════════════════
+// Markdown → HTML (full, expert renderer)
+// ══════════════════════════════════════════════════════════════════════════════
+function md(raw) {
+  if (!raw) return '';
+  let h = raw;
+  // Fenced code blocks — with copy header
+  h = h.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    const l = esc(lang || 'text');
+    return `<div class="code-header"><span>${l}</span><button class="code-copy-btn" data-code="${esc(code.trim())}" aria-label="Copy code"><svg viewBox="0 0 16 16"><path d="M5 2H1v12h9v-3h-1v2H2V3h3V2zm6 0H7v10h8V4l-4-2zM8 3h3l2 2v7H8V3z"/></svg> Copy</button></div><pre><code class="language-${l}">${esc(code.trim())}</code></pre>`;
   });
-  // Blockquotes
-  html = html.replace(/^&gt; ?(.+)$/gm, '<blockquote>$1</blockquote>');
-  // Headings
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  // Bold
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  // Inline code
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  // Links
-  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-  // Images — render inline
-  html = html.replace(/!\[([^\]]*)\]\((https?:\/\/[^\)]+)\)/g, (_, alt, src) =>
-    `<figure style="margin:8px 0"><img src="${src}" alt="${esc(alt)}" style="max-width:100%;border:1px solid #393939" onerror="this.style.display='none'" /><figcaption style="font-size:11px;color:#6f6f6f;margin-top:4px">${esc(alt)}</figcaption></figure>`
-  );
-  // Video / MS Learn links (▶)
-  html = html.replace(/▶ \[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
-    '<div class="media-tile media-tile--video"><div class="play-icon"><svg viewBox="0 0 12 12"><polygon points="2,1 11,6 2,11" fill="white"/></svg></div><a href="$2" target="_blank" rel="noopener" style="color:#78a9ff;font-size:13px">$1</a></div>'
-  );
-  // Ordered list
-  html = html.replace(/((?:^\d+\. .+\n?)+)/gm, (block) => {
-    const items = block.trim().split('\n').map(l => `<li>${l.replace(/^\d+\. /,'')}</li>`).join('');
-    return `<ol>${items}</ol>`;
+  h = h.replace(/^> ?(.+)$/gm, '<blockquote>$1</blockquote>');
+  h = h.replace(/^---+$/gm, '<hr>');
+  h = h.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  h = h.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
+  h = h.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  h = h.replace(/!\[[^\]]*\]\([^\)]*\)/g, '');
+  // Tables
+  h = h.replace(/((?:^\|.+\|\n)+)/gm, block => {
+    const rows = block.trim().split('\n').filter(r => !/^\|[-:| ]+\|$/.test(r));
+    if (!rows.length) return block;
+    const head = rows[0].split('|').filter(Boolean).map(c=>`<th>${c.trim()}</th>`).join('');
+    const body = rows.slice(1).map(r=>'<tr>'+r.split('|').filter(Boolean).map(c=>`<td>${c.trim()}</td>`).join('')+'</tr>').join('');
+    return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
   });
-  // Unordered list
-  html = html.replace(/((?:^[-*] .+\n?)+)/gm, (block) => {
-    const items = block.trim().split('\n').map(l => `<li>${l.replace(/^[-*] /,'')}</li>`).join('');
-    return `<ul>${items}</ul>`;
-  });
-  // Paragraphs (lines not already wrapped)
-  html = html.split('\n\n').map(para => {
-    para = para.trim();
-    if (!para) return '';
-    if (/^<(h[123456]|ul|ol|pre|blockquote|div|figure)/.test(para)) return para;
-    return `<p>${para.replace(/\n/g,' ')}</p>`;
+  h = h.replace(/((?:^\d+\. .+\n?)+)/gm, block => `<ol>${block.trim().split('\n').map(l=>`<li>${l.replace(/^\d+\. /,'')}</li>`).join('')}</ol>`);
+  h = h.replace(/((?:^[-*] .+\n?)+)/gm, block => `<ul>${block.trim().split('\n').map(l=>`<li>${l.replace(/^[-*] /,'')}</li>`).join('')}</ul>`);
+  h = h.split('\n\n').map(p => {
+    p = p.trim(); if (!p) return '';
+    if (/^<(h[1-6]|ul|ol|pre|div|blockquote|table|hr)/.test(p)) return p;
+    return `<p>${p.replace(/\n/g,' ')}</p>`;
   }).join('\n');
-  return html;
+  return h;
 }
 
-// ---------------------------------------------------------------------------
-// Extract insight line from content (first blockquote)
-// ---------------------------------------------------------------------------
-function extractInsight(content) {
-  const m = content.match(/>\s*\*?\*?Insight:\*?\*?\s*(.+?)(?:\n|$)/);
-  return m ? m[1].trim() : null;
+// ══════════════════════════════════════════════════════════════════════════════
+// Clean content — strip raw sources, media, closing blocks
+// ══════════════════════════════════════════════════════════════════════════════
+function clean(content) {
+  if (!content) return '';
+  content = content.replace(/\n+#{1,3}\s*Sources?\s*\n[\s\S]*$/i, '');
+  content = content.replace(/\n+---\s*\n\*\*What would you like to do next\?\*\*[\s\S]*$/i, '');
+  content = content.replace(/^https?:\/\/\S+\s*$/gm, '');
+  content = content.replace(/— score: [\d.]+/g, '');
+  content = content.replace(/^▶ .+$/gm, '');
+  content = content.replace(/!\[[^\]]*\]\([^\)]*\)/g, '');
+  return content.trim();
 }
 
-function stripInsight(content) {
-  return content.replace(/^>\s*\*?\*?Insight:\*?\*?\s*.+?\n?/m, '').trim();
+// ══════════════════════════════════════════════════════════════════════════════
+// Content type tag
+// ══════════════════════════════════════════════════════════════════════════════
+function contentTag(data) {
+  const f = (data.format||'').toLowerCase();
+  const c = (data.content||'').toLowerCase();
+  if (f==='steps'||f==='setup_auth'||c.includes('### steps')) return {cls:'cds--tag--green', label:'Task'};
+  if (f==='faq'||f==='concept_explain'||c.includes('what is')) return {cls:'cds--tag--blue', label:'Concept'};
+  if (f==='code_snippet'||c.includes('```')) return {cls:'cds--tag--warm-gray', label:'Reference'};
+  return {cls:'cds--tag--cool-gray', label:'Answer'};
 }
 
-// ---------------------------------------------------------------------------
-// Build sources HTML
-// ---------------------------------------------------------------------------
-function buildSources(sources) {
-  if (!sources || !sources.length) return '';
-  const items = sources.map(s => {
-    const fp = s.file_path || '';
-    const label = fp.startsWith('http') ? fp.replace('https://learn.microsoft.com','…') : fp;
-    const href  = fp.startsWith('http') ? fp : '#';
-    const score = typeof s.score === 'number' ? s.score.toFixed(2) : '—';
-    return `<div class="source-item">
-      <a class="source-item__path" href="${esc(href)}" target="_blank" rel="noopener" aria-label="Source: ${esc(label)}">${esc(label)}</a>
-      <span class="source-item__score" aria-label="Relevance score ${score}">score ${score}</span>
-    </div>`;
-  }).join('');
-  return `<div class="sources-list"><div class="sources-list__head">Sources</div>${items}</div>`;
+// ══════════════════════════════════════════════════════════════════════════════
+// URL normalise for dedup
+// ══════════════════════════════════════════════════════════════════════════════
+function normaliseUrl(url) {
+  return url.toLowerCase().replace(/\/+$/,'')
+    .replace(/[?&](wt\.mc_id|ocid|wt\.srch|utm_[^&]*)=[^&]*/gi,'').replace(/[?&]$/,'');
 }
 
-// ---------------------------------------------------------------------------
-// Build validation report HTML
-// ---------------------------------------------------------------------------
-function buildValidation(vr) {
-  if (!vr) return '';
-  function dots(score, max) {
-    let h = '';
-    for (let i = 0; i < max; i++) h += `<span class="val-dot${i < score ? ' on' : ''}" aria-hidden="true"></span>`;
-    return `<span class="val-dots" role="img" aria-label="${score} of ${max}">${h}</span>`;
-  }
-  const a11y = vr.accessibilityPass
-    ? `<span class="val-a11y-pass" aria-label="Accessibility passed">&#10003; A11y</span>`
-    : `<span class="val-a11y-fail" aria-label="Accessibility failed">&#10007; A11y</span>`;
-  return `<div class="val-report" role="note" aria-label="Validation report">
-    <span class="val-score">Clarity ${dots(vr.clarityScore,5)}</span>
-    <span class="dot"></span>
-    <span class="val-score">Concision ${dots(vr.concisionScore,5)}</span>
-    <span class="dot"></span>
-    ${a11y}
-  </div>`;
+// ══════════════════════════════════════════════════════════════════════════════
+// Scroll to bottom
+// ══════════════════════════════════════════════════════════════════════════════
+function scrollBottom() {
+  setTimeout(() => { threadEl.scrollTop = threadEl.scrollHeight; }, 50);
 }
 
-// ---------------------------------------------------------------------------
-// Build interactive options HTML
-// ---------------------------------------------------------------------------
-function buildOptions(options, currentSessionId, isLowConf) {
-  if (!options || !options.length) return '';
-  const btns = options.map(opt => {
-    let cls = 'cda-btn cda-btn--ghost cda-btn--sm';
-    if (opt.id === 'doesnt_help') cls = 'cda-btn cda-btn--danger-ghost cda-btn--sm';
-    if (opt.id === 'contact_support' || opt.id === 'get_human_help') cls = 'cda-btn cda-btn--ghost cda-btn--sm';
+// ══════════════════════════════════════════════════════════════════════════════
+// Show thread, hide welcome
+// ══════════════════════════════════════════════════════════════════════════════
+function revealThread() {
+  welcomeEl.style.display = 'none';
+  threadEl.classList.add('visible');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Render user query bubble
+// ══════════════════════════════════════════════════════════════════════════════
+function renderQuery(text) {
+  revealThread();
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap';
+  wrap.innerHTML = `<div class="user-msg"><div class="user-msg__bubble">${esc(text)}</div></div>`;
+  threadEl.appendChild(wrap);
+  scrollBottom();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LAYER 1 — render selection card
+// ══════════════════════════════════════════════════════════════════════════════
+function renderL1(data, originalQuery) {
+  revealThread();
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap';
+  const opts = data.interactiveOptions || [];
+
+  // Build tiles HTML
+  const tilesHtml = opts.map((opt, i) => {
+    const num = ['01','02','03','04','05'][i] || String(i+1);
     return `<button
-      class="${cls}"
-      data-option-id="${esc(opt.id)}"
-      data-session="${esc(currentSessionId)}"
-      aria-label="${esc(opt.description)}"
-      title="${esc(opt.description)}"
-    >${esc(opt.label)}</button>`;
+      class="cds--tile-option"
+      data-opt-id="${esc(opt.id)}"
+      data-opt-label="${esc(opt.label)}"
+      data-query-focus="${esc(opt.description||opt.label)}"
+      aria-label="Select: ${esc(opt.label)}"
+    >
+      <span class="tile-option__num">${num}</span>
+      <span class="tile-option__body">
+        <span class="tile-option__label">${esc(opt.label)}</span>
+        ${opt.description ? `<span class="tile-option__hint">${esc(opt.description)}</span>` : ''}
+      </span>
+      <span class="tile-option__arrow" aria-hidden="true">
+        <svg viewBox="0 0 16 16"><path d="M9.3 3.3L8 4.6l3.4 3.4H1v1.9h10.4L8 13.4l1.3 1.3 5.7-5.7z"/></svg>
+      </span>
+    </button>`;
   }).join('');
-  return `<div class="options-bar" role="group" aria-label="Follow-up options">${btns}</div>`;
-}
 
-// ---------------------------------------------------------------------------
-// Render a full agent response
-// ---------------------------------------------------------------------------
-function renderAgentResponse(data, iteration) {
-  const wrap = document.createElement('div');
-  wrap.className = 'msg msg--agent';
-  wrap.setAttribute('role', 'article');
-  wrap.setAttribute('aria-label', `Assistant response, iteration ${iteration + 1}`);
+  wrap.innerHTML = `
+    <div class="l1-card">
+      <div class="l1-card__agent-row">
+        <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2C8.27 2 2 8.27 2 16s6.27 14 14 14 14-6.27 14-14S23.73 2 16 2zm-1 6h2v10h-2zm1 14a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>
+        Context Aware Agent
+      </div>
+      <p class="l1-prompt">
+        I found several angles on <strong>"${esc(originalQuery)}"</strong>. Which of these best describes what you need?
+      </p>
+      <div class="l1-options" role="listbox" aria-label="Select the best match for your query">
+        ${tilesHtml}
+      </div>
+    </div>`;
 
-  // Avatar row
-  wrap.innerHTML = `<div class="msg__avatar">
-    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2zm-1 6h2v10h-2zm1 14a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>
-    Assistant
-    <span class="confidence-badge ${data.confidence}" aria-label="Confidence: ${data.confidence}">${data.confidence}</span>
-    ${iteration > 0 ? `<span style="font-size:11px;color:#6f6f6f">· Result set ${iteration+1}</span>` : ''}
-  </div>`;
-
-  const tile = document.createElement('div');
-  tile.className = 'cds-tile';
-
-  // Iteration divider
-  if (iteration > 0) {
-    const div = document.createElement('div');
-    div.className = 'iter-divider';
-    div.setAttribute('role', 'separator');
-    div.setAttribute('aria-label', `Refined result set ${iteration+1}`);
-    div.textContent = `Showing result set ${iteration+1} — refined for you`;
-    messagesEl.appendChild(div);
-  }
-
-  // Meta row
-  const meta = document.createElement('div');
-  meta.className = 'meta-row';
-  meta.setAttribute('aria-label', `Estimated read time: ${data.estimatedReadTime}`);
-  meta.innerHTML = `<span>${data.estimatedReadTime || '1 min read'}</span>
-    <span class="dot"></span>
-    <span>${(data.format || 'answer').replace('_',' ')}</span>`;
-  tile.appendChild(meta);
-
-  // Low confidence notice
-  if (data.confidence === 'Low' || data.responseType === 'low_confidence') {
-    const notice = document.createElement('div');
-    notice.className = 'low-conf-notice';
-    notice.setAttribute('role', 'alert');
-    notice.setAttribute('aria-label', 'Low confidence warning');
-    notice.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1L1 14h14L8 1zm-1 5h2v4H7zm0 5h2v2H7z"/></svg>
-      <div class="low-conf-notice__text">${esc(data.responseText || 'We could not find a confident answer yet.')}</div>`;
-    tile.appendChild(notice);
-  }
-
-  // Clarify card
-  if (data.responseType === 'clarify') {
-    const cc = document.createElement('div');
-    cc.className = 'clarify-card';
-    cc.setAttribute('role', 'region');
-    cc.setAttribute('aria-label', 'Clarifying questions');
-    cc.innerHTML = `<div class="clarify-card__title">We need a bit more detail</div>`;
-    const qs = data.content ? data.content.split('\n').filter(l => l.trim().startsWith('-')) : [];
-    qs.forEach(q => {
-      const p = document.createElement('p');
-      p.className = 'clarify-q';
-      p.textContent = q.replace(/^- /,'');
-      cc.appendChild(p);
+  threadEl.appendChild(wrap);
+  // Bind clicks
+  wrap.querySelectorAll('.cds--tile-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectOption(btn.dataset.optId, btn.dataset.optLabel, btn.dataset.queryFocus);
     });
-    tile.appendChild(cc);
-  } else {
-    // Insight callout
-    const insight = extractInsight(data.content || '');
-    if (insight) {
-      const ic = document.createElement('div');
-      ic.className = 'cds-tile--insight';
-      ic.setAttribute('role', 'note');
-      ic.setAttribute('aria-label', 'Key insight');
-      ic.innerHTML = `<strong>Insight:</strong> ${esc(insight)}`;
-      tile.appendChild(ic);
-    }
-
-    // Main content
-    const body = document.createElement('div');
-    body.className = 'content-body';
-    body.setAttribute('aria-label', 'Response content');
-    const stripped = stripInsight(data.content || '');
-    body.innerHTML = mdToHtml(stripped);
-    tile.appendChild(body);
-  }
-
-  // Sources
-  const srcHtml = buildSources(data.sources);
-  if (srcHtml) {
-    const srcEl = document.createElement('div');
-    srcEl.innerHTML = srcHtml;
-    tile.appendChild(srcEl);
-  }
-
-  // Suggested refinements
-  if (data.suggestedRefinements && data.suggestedRefinements.length) {
-    const rf = document.createElement('div');
-    rf.style.cssText = 'margin-top:12px;font-size:12px;color:#6f6f6f';
-    rf.setAttribute('aria-label', 'Suggested refinements');
-    rf.innerHTML = '<strong style="color:#c6c6c6">Try refining:</strong> ';
-    data.suggestedRefinements.forEach(r => {
-      const btn = document.createElement('button');
-      btn.className = 'chip';
-      btn.style.cssText = 'font-size:11px;margin:4px 4px 0 0';
-      btn.textContent = r.length > 60 ? r.slice(0,57)+'…' : r;
-      btn.title = r;
-      btn.setAttribute('aria-label', 'Refine search: ' + r);
-      btn.addEventListener('click', () => { userInputEl.value = r; userInputEl.focus(); });
-      rf.appendChild(btn);
-    });
-    tile.appendChild(rf);
-  }
-
-  // Validation report
-  const vrHtml = buildValidation(data.validationReport);
-  if (vrHtml) {
-    const vrEl = document.createElement('div');
-    vrEl.innerHTML = vrHtml;
-    tile.appendChild(vrEl);
-  }
-
-  // Human review banner
-  if (data.routeToHumanReview) {
-    const hrb = document.createElement('div');
-    hrb.className = 'human-review-banner';
-    hrb.setAttribute('role', 'alert');
-    hrb.setAttribute('aria-label', 'Routed to human review');
-    hrb.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" stroke="#42be65" stroke-width="1.5" fill="none"/><path d="M5 8l2 2 4-4" stroke="#42be65" stroke-width="1.5" fill="none"/></svg>
-      <div class="human-review-banner__text">This response has been flagged for human review. A specialist may follow up.</div>`;
-    tile.appendChild(hrb);
-  }
-
-  // Interactive options
-  const optsHtml = buildOptions(data.interactiveOptions, data.sessionId, data.confidence === 'Low');
-  if (optsHtml) {
-    const optsEl = document.createElement('div');
-    optsEl.innerHTML = optsHtml;
-    tile.appendChild(optsEl);
-    // attach click handlers
-    optsEl.querySelectorAll('[data-option-id]').forEach(btn => {
-      btn.addEventListener('click', () => handleOption(btn.dataset.optionId, btn.dataset.session));
-    });
-  }
-
-  wrap.appendChild(tile);
-  messagesEl.appendChild(wrap);
+  });
   scrollBottom();
 }
 
-// ---------------------------------------------------------------------------
-// Add user message bubble
-// ---------------------------------------------------------------------------
-function renderUserMsg(text) {
+// ══════════════════════════════════════════════════════════════════════════════
+// LAYER 2 — render content card
+// Pure content only. No options. "See more" link is part of the content body.
+// ══════════════════════════════════════════════════════════════════════════════
+function renderL2(data, selectedLabel) {
   const wrap = document.createElement('div');
-  wrap.className = 'msg msg--user';
-  wrap.setAttribute('role', 'article');
-  wrap.setAttribute('aria-label', 'Your message');
-  wrap.innerHTML = `<div class="msg__bubble">${esc(text)}</div>`;
-  messagesEl.appendChild(wrap);
+  wrap.className = 'msg-wrap';
+  const tag = contentTag(data);
+  const cleaned = clean(data.content || data.responseText || '');
+
+  wrap.innerHTML = `
+    <div class="l2-card">
+      <div class="l2-card__agent-row">
+        <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2C8.27 2 2 8.27 2 16s6.27 14 14 14 14-6.27 14-14S23.73 2 16 2zm-1 6h2v10h-2zm1 14a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>
+        <span class="l2-card__agent-label">Content Representation Agent</span>
+      </div>
+      <div class="cds--tile">
+        <div class="content-meta">
+          <span class="cds--tag ${tag.cls}">${tag.label}</span>
+          <span class="content-meta__sep"></span>
+          <span class="content-meta__text">${esc(data.estimatedReadTime || '1 min read')}</span>
+          ${selectedLabel ? `<span class="content-meta__sep"></span><span class="content-meta__text">${esc(selectedLabel)}</span>` : ''}
+        </div>
+        <div class="cds--content-body">${md(cleaned)}</div>
+      </div>
+    </div>`;
+
+  threadEl.appendChild(wrap);
+
+  // Code copy buttons (within rendered code blocks)
+  wrap.querySelectorAll('.code-copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.dataset.code || '';
+      navigator.clipboard.writeText(code).then(() => {
+        btn.textContent = ' Copied!';
+        setTimeout(() => { btn.innerHTML = '<svg viewBox="0 0 16 16"><path d="M5 2H1v12h9v-3h-1v2H2V3h3V2zm6 0H7v10h8V4l-4-2zM8 3h3l2 2v7H8V3z"/></svg> Copy'; }, 1500);
+      }).catch(() => {});
+    });
+  });
+
   scrollBottom();
 }
 
-// ---------------------------------------------------------------------------
-// Loading skeleton
-// ---------------------------------------------------------------------------
-function showSkeleton() {
+// ══════════════════════════════════════════════════════════════════════════════
+// Skeleton
+// ══════════════════════════════════════════════════════════════════════════════
+function showSkeleton(label) {
+  removeSkeleton();
+  revealThread();
   const sk = document.createElement('div');
-  sk.id = 'loadingSkeleton';
-  sk.className = 'msg msg--agent';
-  sk.setAttribute('aria-label', 'Loading response');
-  sk.setAttribute('aria-busy', 'true');
-  sk.innerHTML = `<div class="msg__avatar" aria-hidden="true">
-    <svg viewBox="0 0 32 32" width="16" height="16"><path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z"/></svg>
-    Thinking…
-  </div>
-  <div class="cds-tile">
-    <div class="skeleton-line" style="width:80%"></div>
-    <div class="skeleton-line" style="width:60%"></div>
-    <div class="skeleton-line" style="width:90%"></div>
-    <div class="skeleton-line" style="width:50%"></div>
+  sk.id = 'skeleton'; sk.className = 'msg-wrap';
+  sk.setAttribute('aria-busy','true'); sk.setAttribute('aria-label','Loading…');
+  sk.innerHTML = `<div class="cds--skeleton">
+    <div class="cds--skeleton__agent-row">
+      <div class="skel-circle"></div>
+      <div class="skel-line" style="width:120px;height:10px;margin:0"></div>
+    </div>
+    <div class="skel-line" style="width:70%"></div>
+    <div class="skel-line" style="width:90%"></div>
+    <div class="skel-line" style="width:60%"></div>
+    <div class="skel-line" style="width:80%"></div>
+    <div class="skel-line" style="width:50%"></div>
+    ${label ? `<div style="margin-top:12px;font-size:11px;color:var(--cds-text-secondary);font-family:var(--font-mono)">${esc(label)}</div>` : ''}
   </div>`;
-  messagesEl.appendChild(sk);
+  threadEl.appendChild(sk);
   scrollBottom();
 }
-
 function removeSkeleton() {
-  const sk = document.getElementById('loadingSkeleton');
+  const sk = document.getElementById('skeleton');
   if (sk) sk.remove();
 }
 
-// ---------------------------------------------------------------------------
-// Send a new chat message
-// ---------------------------------------------------------------------------
-async function sendMessage(query) {
-  const text = (query || userInputEl.value).trim();
-  if (!text) return;
-  userInputEl.value = '';
-  autoResizeTextarea();
-  hideEmpty();
-  newSession();
+// ══════════════════════════════════════════════════════════════════════════════
+// Error
+// ══════════════════════════════════════════════════════════════════════════════
+function showError(msg) {
+  removeSkeleton();
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap';
+  wrap.setAttribute('role','alert');
+  wrap.innerHTML = `<div class="cds--inline-notification">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1L1 14h14L8 1zm-1 5h2v4H7zm0 5h2v2H7z"/></svg>
+    <div class="cds--inline-notification__text">
+      <div class="cds--inline-notification__title">Something went wrong</div>
+      ${esc(msg)}
+    </div>
+  </div>`;
+  threadEl.appendChild(wrap);
+  scrollBottom();
+}
 
-  renderUserMsg(text);
-  sendBtn.disabled = true;
-  showSkeleton();
+// ══════════════════════════════════════════════════════════════════════════════
+// FIRST SEND — POST /chat → always returns Layer 1 options
+// ══════════════════════════════════════════════════════════════════════════════
+async function send() {
+  if (locked) return;
+  let text = inputEl.value.trim();
+  if (!text) return;
+  if (intentPfx) text = intentPfx + ' ' + text;
+  newSession(); lock();
+  renderQuery(text);
+  inputEl.value = ''; resize();
+  showSkeleton('Analysing your query…');
 
   try {
+    const fmtPref = depth==='summary'?'summary': depth==='detailed'?'faq':null;
     const resp = await fetch(API + '/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        sessionId,
-        userInput: text,
-        audience: audienceSel.value,
-        maxLength: 2000,
+        sessionId, userInput: text, audience,
+        maxLength: depth==='detailed'?3000: depth==='summary'?800:1800,
         humanReviewOnLowConfidence: true,
+        userFormatPreference: fmtPref,
       }),
     });
     const data = await resp.json();
+    if (data.error) throw new Error(data.error);
     removeSkeleton();
-    renderAgentResponse(data, 0);
-    addHistoryItem(text, data.confidence || 'Low');
-  } catch (e) {
-    removeSkeleton();
-    const errEl = document.createElement('div');
-    errEl.className = 'msg msg--agent';
-    errEl.innerHTML = `<div class="low-conf-notice" role="alert"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1L1 14h14L8 1zm-1 5h2v4H7zm0 5h2v2H7z"/></svg><div class="low-conf-notice__text">Could not reach the assistant API at ${esc(API)}. Make sure the server is running.</div></div>`;
-    messagesEl.appendChild(errEl);
-    scrollBottom();
-  } finally {
-    sendBtn.disabled = false;
+
+    if (data.responseType === 'select') {
+      // Layer 1 — show options
+      renderL1(data, text);
+    } else {
+      // Pipeline returned content directly (high-confidence single intent)
+      renderL2(data, null);
+    }
+  } catch(err) {
+    showError(err.message || 'Could not reach the server at ' + API);
   }
 }
 
-// ---------------------------------------------------------------------------
-// Handle interactive option clicks
-// ---------------------------------------------------------------------------
-async function handleOption(optionId, sid) {
-  if (optionId === 'contact_support' || optionId === 'get_human_help') {
-    const banner = document.createElement('div');
-    banner.className = 'human-review-banner msg';
-    banner.setAttribute('role', 'alert');
-    banner.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" stroke="#42be65" stroke-width="1.5" fill="none"/><path d="M5 8l2 2 4-4" stroke="#42be65" stroke-width="1.5" fill="none"/></svg>
-      <div class="human-review-banner__text">Connecting you with a specialist. Your conversation has been saved for review.</div>`;
-    messagesEl.appendChild(banner);
-    scrollBottom();
-    return;
-  }
-
-  iterationCount++;
-  showSkeleton();
-  sendBtn.disabled = true;
+// ══════════════════════════════════════════════════════════════════════════════
+// LAYER 1 SELECTION — POST /select → returns Layer 2 content
+// ══════════════════════════════════════════════════════════════════════════════
+async function selectOption(id, label, queryFocus) {
+  // Echo the selection as a user bubble
+  const selWrap = document.createElement('div');
+  selWrap.className = 'msg-wrap';
+  selWrap.innerHTML = `<div class="user-msg"><div class="user-msg__bubble">${esc(label)}</div></div>`;
+  threadEl.appendChild(selWrap);
+  showSkeleton('Retrieving documentation and composing your answer…');
+  scrollBottom();
 
   try {
-    const resp = await fetch(API + '/loop', {
+    const resp = await fetch(API + '/select', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId: sid, feedbackSignal: optionId }),
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ sessionId, selectedId: id, selectedLabel: label, queryFocus }),
     });
     const data = await resp.json();
+    if (data.error) throw new Error(data.error);
     removeSkeleton();
-    renderAgentResponse(data, iterationCount);
-  } catch (e) {
-    removeSkeleton();
-  } finally {
-    sendBtn.disabled = false;
+    renderL2(data, label);
+  } catch(err) {
+    showError(err.message || 'Could not reach the server.');
   }
 }
 
-// ---------------------------------------------------------------------------
-// Auto-resize textarea
-// ---------------------------------------------------------------------------
-function autoResizeTextarea() {
-  userInputEl.style.height = 'auto';
-  userInputEl.style.height = Math.min(userInputEl.scrollHeight, 180) + 'px';
-}
-
-// ---------------------------------------------------------------------------
-// Event listeners
-// ---------------------------------------------------------------------------
-sendBtn.addEventListener('click', () => sendMessage());
-
-userInputEl.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-});
-
-userInputEl.addEventListener('input', autoResizeTextarea);
-
-newChatBtn.addEventListener('click', () => {
-  messagesEl.innerHTML = '';
-  messagesEl.appendChild(emptyState);
-  emptyState.style.display = '';
-  userInputEl.value = '';
-  sessionId = null;
-});
-
-clearHistBtn.addEventListener('click', () => {
-  history = [];
-  historyList.innerHTML = '';
-});
-
-// Suggestion chips
-document.querySelectorAll('.chip[data-query]').forEach(btn => {
-  btn.addEventListener('click', () => sendMessage(btn.dataset.query));
-});
+// Layer 2 has no options — continueConversation removed.
+// The conversation ends at the content card. "See more" opens the source URL.
 </script>
 </body>
 </html>

@@ -1,14 +1,13 @@
 """
 Content Representation Agent (Agent 3)
 
-Synthesises original markdown content from retrieved chunks, injects a
-watsonx-generated plain-language summary block, extracts multimedia
-(images + video links) from MCP results, applies plain-language and
-accessibility rules, builds empathetic interactive options that evolve
-across loop iterations, and produces a validationReport.
+Layer 2 contract:
+  - Returns pure structured content only (steps / code / faq / summary).
+  - A single "See more" link to the primary source is appended at the end.
+  - interactiveOptions is always [] — options live in Layer 1 only.
 
-MOCK_MODE=true  → watsonx summary call is mocked with a template string.
-MOCK_MODE=false → calls watsonx ModelInference.generate_text().
+MOCK_MODE=true  -- watsonx summary call is mocked with a template string.
+MOCK_MODE=false -- calls watsonx ModelInference.generate_text().
 """
 from __future__ import annotations
 
@@ -17,9 +16,7 @@ import os
 import re
 from pathlib import Path
 
-import requests
-
-from conversation_agent.schemas import AgentInput, InteractiveOption, ValidationReport
+from conversation_agent.schemas import AgentInput, ValidationReport
 
 # ---------------------------------------------------------------------------
 # Environment
@@ -79,51 +76,6 @@ def _select_top_results(results: list[dict], avg_score: float) -> list[dict]:
         return results[:3]
     return []
 
-
-# ---------------------------------------------------------------------------
-# Multimedia extraction
-# ---------------------------------------------------------------------------
-
-_IMAGE_RE = re.compile(r"https?://\S+\.(?:png|jpg|jpeg|gif|svg|webp)(?:\?\S*)?", re.I)
-_VIDEO_RE = re.compile(
-    r"https?://(?:www\.)?(?:youtu\.be/|youtube\.com/embed/|learn\.microsoft\.com/\S+/video/)\S+",
-    re.I,
-)
-_MSLEARN_RE = re.compile(r"https?://learn\.microsoft\.com/[^\s\"'>]+", re.I)
-
-
-def _extract_multimedia(selected: list[dict]) -> dict:
-    images: list[dict] = []
-    videos: list[dict] = []
-    seen_urls: set[str] = set()
-
-    for chunk in selected:
-        full_text = chunk.get("text", "") + " " + chunk.get("snippet", "")
-        # Pull explicit image fields first
-        for url in chunk.get("images", []):
-            if url not in seen_urls:
-                alt = f"Diagram from {chunk['file_path'].split('/')[-1].replace('.md','')}"
-                images.append({"url": url, "alt": alt})
-                seen_urls.add(url)
-        # Regex scan for inline image URLs
-        for url in _IMAGE_RE.findall(full_text):
-            if url not in seen_urls:
-                images.append({"url": url, "alt": "Reference diagram"})
-                seen_urls.add(url)
-        # Video links
-        for url in chunk.get("links", []):
-            if _VIDEO_RE.search(url) and url not in seen_urls:
-                title = chunk["file_path"].split("/")[-1].replace(".md", "").replace("-", " ").title()
-                videos.append({"url": url, "title": title})
-                seen_urls.add(url)
-        # MS Learn module links as "media"
-        for url in _MSLEARN_RE.findall(full_text):
-            if url not in seen_urls and url not in [v["url"] for v in videos]:
-                title = url.rstrip("/").split("/")[-1].replace("-", " ").title()
-                videos.append({"url": url, "title": title})
-                seen_urls.add(url)
-
-    return {"images": images[:4], "videos": videos[:4]}  # cap at 4 each
 
 
 # ---------------------------------------------------------------------------
@@ -199,25 +151,20 @@ def _call_watsonx_summary(selected: list[dict], intent: str, audience: str,
 
 # ---------------------------------------------------------------------------
 # Content synthesis
+# Layer 2 contract: pure content body only.
+# A single "See more" link to the primary source is appended at the end.
+# No options, no media sections, no score lists embedded in the body.
 # ---------------------------------------------------------------------------
 
-def _format_sources(selected: list[dict]) -> str:
-    lines = ["## Sources", ""]
-    for r in selected:
-        link = (r.get('links') or ['#'])[0] or '#'
-        lines.append(f"- [{r['file_path']}]({link}) — score: {r['score']:.2f}")
-    return "\n".join(lines)
-
-
-def _format_media(multimedia: dict) -> str:
-    if not multimedia["images"] and not multimedia["videos"]:
-        return ""
-    lines = ["## Media", ""]
-    for img in multimedia["images"]:
-        lines.append(f"![{img['alt']}]({img['url']})")
-    for vid in multimedia["videos"]:
-        lines.append(f"▶ [{vid['title']}]({vid['url']})")
-    return "\n".join(lines)
+def _primary_source_url(selected: list[dict]) -> tuple[str, str]:
+    """Return (url, title) for the top source with a real link, or ('', '')."""
+    for chunk in selected:
+        links = chunk.get("links") or []
+        for url in links:
+            if url and url != "#":
+                title = url.rstrip("/").split("/")[-1].replace("-", " ").title()
+                return url, title
+    return "", ""
 
 
 def _synthesize_content(
@@ -225,56 +172,40 @@ def _synthesize_content(
     intent_result: dict,
     input_obj: AgentInput,
     fmt: str,
-    multimedia: dict,
     watsonx_summary: str,
 ) -> str:
-    intent   = intent_result.get("chosenIntent", "")
-    entities = intent_result.get("entities", [])
+    intent    = intent_result.get("chosenIntent", "")
+    entities  = intent_result.get("entities", [])
     iteration = input_obj.sessionStore.iterationCount
-    # Use the actual user question as the topic label — far more readable
-    # than internal entity names like "azure, azure ad"
-    topic = input_obj.userInput.strip().rstrip("?")
+    topic     = input_obj.userInput.strip().rstrip("?")
 
     parts: list[str] = []
 
-    # Iteration marker
     if iteration > 0:
         parts.append(f"> *Showing result set {iteration + 1} — refined for you*\n")
 
-    # watsonx summary block
+    # Plain-language insight from retrieved content
     parts.append(f"> **Insight:** {watsonx_summary}\n")
 
-    # Main content by format
+    # Structured content body
     if fmt == "steps":
-        steps_text = _build_steps(selected, topic)
-        parts.append(steps_text)
-
+        parts.append(_build_steps(selected, topic))
     elif fmt == "code_snippet":
-        code_text = _build_code_snippet(selected, intent, entities)
-        parts.append(code_text)
-
+        parts.append(_build_code_snippet(selected, intent, entities))
     elif fmt == "faq":
-        faq_text = _build_faq(selected, topic)
-        parts.append(faq_text)
+        parts.append(_build_faq(selected, topic))
+    else:
+        parts.append(_build_summary(selected, topic))
 
-    else:  # summary / table / default
-        summary_text = _build_summary(selected, topic)
-        parts.append(summary_text)
-
-    # Media section
-    media_md = _format_media(multimedia)
-    if media_md:
-        parts.append(media_md)
-
-    # Sources
-    if selected:
-        parts.append(_format_sources(selected))
+    # Single "See more" link at the very end — the only external reference
+    url, title = _primary_source_url(selected)
+    if url:
+        parts.append(f"\n[See more: {title}]({url})")
 
     content = "\n\n".join(parts)
 
-    # Truncate to maxLength
     if len(content) > input_obj.maxLength:
-        content = content[: input_obj.maxLength - 40] + "\n\n> *[See more…]*"
+        content = content[: input_obj.maxLength - 40] + "\n\n> *[Content truncated — see more via the link above]*"
 
     return content
 
@@ -403,13 +334,6 @@ def _build_code_snippet(selected: list[dict], intent: str, entities: list[str]) 
                 f"```"
             )
 
-    lines.append("")
-    # Append real source links from MCP
-    for chunk in selected[:2]:
-        link = (chunk.get("links") or ["#"])[0] or "#"
-        fp   = chunk.get("file_path", link)
-        if link != "#":
-            lines.append(f"**Source:** [{fp}]({link})")
     return "\n".join(lines)
 
 
@@ -438,25 +362,16 @@ def _build_faq(selected: list[dict], topic: str) -> str:
 
 
 def _build_summary(selected: list[dict], topic: str) -> str:
-    """
-    Build a summary from the actual MCP content.
-    Uses full text of top chunks, lightly formatted.
-    """
+    """Build a summary from the actual MCP content — no inline source links."""
     import re as _re
     lines = [f"## Summary — {topic}", ""]
     for chunk in selected[:3]:
         text = chunk.get("text", "").strip()
         if not text:
             continue
-        # Break into short paragraphs at sentence boundaries
         sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", text) if len(s.strip()) > 10]
         para = " ".join(sentences[:4])
         lines.append(para)
-        # Link
-        link = (chunk.get("links") or ["#"])[0] or "#"
-        fp   = chunk.get("file_path", "")
-        if link != "#":
-            lines.append(f"[Read more: {fp}]({link})")
         lines.append("")
     return "\n".join(lines)
 
@@ -477,46 +392,8 @@ def _low_confidence_response(refinements: list[str], topic: str) -> str:
     return "\n".join(lines)
 
 
-# ---------------------------------------------------------------------------
-# Interactive options — empathetic, evolving with iteration
-# ---------------------------------------------------------------------------
-
-def _build_interactive_options(
-    intent_result: dict,
-    iteration: int,
-) -> list[InteractiveOption]:
-    # Use a short form of the user's question as the topic for option labels
-    user_q = intent_result.get("_userInput", "this topic")
-    topic = user_q[:50] + ("…" if len(user_q) > 50 else "")
-
-    options = [
-        InteractiveOption(
-            id="show_next",
-            label="Show me next",
-            description=f"See more results about {topic}",
-        ),
-        InteractiveOption(
-            id="doesnt_help",
-            label="This doesn't help",
-            description=f"Tell us this missed the mark on {topic} and try a different angle",
-        ),
-    ]
-
-    if iteration >= 5:
-        options.extend([
-            InteractiveOption(
-                id="contact_support",
-                label="Contact support",
-                description=f"Connect with a specialist who can help you with {topic}",
-            ),
-            InteractiveOption(
-                id="get_human_help",
-                label="Get human help",
-                description=f"Escalate to a human reviewer for personalized assistance with {topic}",
-            ),
-        ])
-
-    return options
+# _build_interactive_options removed — Layer 2 carries no interactive options.
+# Options live exclusively in Layer 1 (interactiveOptions on responseType:"select").
 
 
 # ---------------------------------------------------------------------------
@@ -579,7 +456,16 @@ def _run_validation(content: str, fmt: str, max_length: int) -> ValidationReport
 # ---------------------------------------------------------------------------
 
 class ContentAgent:
-    """Agent 3 — Content synthesis, multimedia, empathetic UX, validation."""
+    """
+    Agent 3 — Content Representation Agent.
+
+    Layer 2 contract:
+      - Returns pure structured content (steps / code / faq / summary).
+      - A single "See more" link to the primary source URL is appended
+        at the very end of the content body.
+      - interactiveOptions is ALWAYS empty — options live in Layer 1 only.
+      - sources[] is passed back for the UI to use if needed.
+    """
 
     def __init__(self, model: object = None) -> None:
         self._model = model
@@ -590,54 +476,55 @@ class ContentAgent:
         intent_result: dict,
         input_obj: AgentInput,
     ) -> dict:
-        iteration = input_obj.sessionStore.iterationCount
-        avg_score = retrieval_result.get("avgScore", 0.0)
-        results = retrieval_result.get("results", [])
+        iteration   = input_obj.sessionStore.iterationCount
+        avg_score   = retrieval_result.get("avgScore", 0.0)
+        results     = retrieval_result.get("results", [])
         refinements = retrieval_result.get("suggestedRefinements", [])
 
         confidence = _determine_confidence(avg_score)
-        fmt = _select_format(intent_result.get("chosenIntent", ""), input_obj.userFormatPreference)
-        selected = _select_top_results(results, avg_score)
+        fmt        = _select_format(intent_result.get("chosenIntent", ""), input_obj.userFormatPreference)
+        selected   = _select_top_results(results, avg_score)
 
-        # Use the actual user question as topic throughout — not internal entity names
         topic = input_obj.userInput.strip().rstrip("?")
-        # Pass it into intent_result so _build_interactive_options can use it
         intent_result["_userInput"] = topic
 
-        # Low confidence path
+        # Low confidence — no content to show; tell user to refine
         if not selected:
-            short = topic[:60] + ("…" if len(topic) > 60 else "")
-            response_text = f"We couldn't find a confident answer for: \"{short}\". Try refining your search."
+            short   = topic[:60] + ("…" if len(topic) > 60 else "")
             content = _low_confidence_response(refinements, short)
-            validation = _run_validation(content, fmt, input_obj.maxLength)
-            options = _build_interactive_options(intent_result, iteration)
             return {
-                "responseText": response_text,
+                "responseText": f"We couldn't find a confident answer for: \"{short}\". Try refining your search.",
                 "format": fmt,
                 "content": content,
-                "interactiveOptions": [o.model_dump() for o in options],
+                "interactiveOptions": [],   # no options in Layer 2
                 "sources": [],
                 "confidence": "Low",
                 "suggestedRefinements": refinements,
                 "estimatedReadTime": _estimate_read_time(content),
-                "validationReport": validation.model_dump(),
+                "validationReport": _run_validation(content, fmt, input_obj.maxLength).model_dump(),
             }
 
-        # Normal path
+        # Normal path — synthesise pure content
         watsonx_summary = _call_watsonx_summary(
             selected, intent_result.get("chosenIntent", ""), input_obj.audience, self._model
         )
-        multimedia = _extract_multimedia(selected)
-        content = _synthesize_content(selected, intent_result, input_obj, fmt, multimedia, watsonx_summary)
-        short = topic[:60] + ("…" if len(topic) > 60 else "")
-        response_text = f"Here's what we found for: \"{short}\"."
-        if iteration > 0:
-            response_text = f"Refined result for: \"{short}\" — hope this is closer to what you need."
+        content = _synthesize_content(selected, intent_result, input_obj, fmt, watsonx_summary)
 
-        validation = _run_validation(content, fmt, input_obj.maxLength)
-        options = _build_interactive_options(intent_result, iteration)
+        short = topic[:60] + ("…" if len(topic) > 60 else "")
+        response_text = (
+            f"Refined result for: \"{short}\"." if iteration > 0
+            else f"Here is what we found for: \"{short}\"."
+        )
+
         sources = [
-            {"file_path": r["file_path"], "page_numbers": r.get("page_numbers", ""), "score": r["score"]}
+            {
+                "file_path": r["file_path"],
+                "page_numbers": r.get("page_numbers", ""),
+                "score": r["score"],
+                "url": (r.get("links") or [""])[0],
+                "title": r["file_path"].rstrip("/").split("/")[-1]
+                         .replace("-", " ").replace(".md", "").title(),
+            }
             for r in selected
         ]
 
@@ -645,10 +532,10 @@ class ContentAgent:
             "responseText": response_text,
             "format": fmt,
             "content": content,
-            "interactiveOptions": [o.model_dump() for o in options],
+            "interactiveOptions": [],       # Layer 2 carries no options
             "sources": sources,
             "confidence": confidence,
             "suggestedRefinements": refinements,
             "estimatedReadTime": _estimate_read_time(content),
-            "validationReport": validation.model_dump(),
+            "validationReport": _run_validation(content, fmt, input_obj.maxLength).model_dump(),
         }

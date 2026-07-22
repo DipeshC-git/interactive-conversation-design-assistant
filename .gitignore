@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment / secrets — never commit real keys
+.env
+*.env
+conversation_agent/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Installers — not needed in source control
+*.msi
+
+# Poppler binaries (bundled in bin/ for local Windows dev)
+# These are large binary files; uncomment the line below to exclude them.
+# To run on Windows without installing Poppler system-wide, keep bin/ tracked.
+# On macOS/Linux, install via: brew install poppler / apt install poppler-utils
+# bin/
+
+# Test / coverage artefacts
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Ruff / linting cache
+.ruff_cache/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Bob workspace internals — contains secrets (PAT)
+.bob/

@@ -186,9 +186,38 @@ class WatsonxOrchestrator:
                 ),
             )
 
-        # Step 1 — Intent & Clarification
+        # Step 1 — Intent → may return Layer 1 selection options
         intent_result = self._intent_agent.run(input_obj)
 
+        # Layer 1: return options for the user to choose from
+        if intent_result["status"] == "select":
+            def _truncate_label(s: str, limit: int = 40) -> str:
+                if len(s) <= limit:
+                    return s
+                # Truncate at the last space before the limit so we don't cut mid-word
+                cut = s[:limit].rsplit(" ", 1)[0]
+                return cut or s[:limit]
+
+            options = [
+                InteractiveOption(
+                    id=o["id"],
+                    label=_truncate_label(o["label"]),
+                    description=o.get("hint", o["label"]),
+                )
+                for o in intent_result.get("options", [])
+            ]
+            return AgentOutput(
+                sessionId=input_obj.sessionId,
+                responseType="select",
+                responseText="Which of these best describes what you're looking for?",
+                content="",
+                interactiveOptions=options,
+                validationReport=ValidationReport(
+                    clarityScore=5, concisionScore=5, accessibilityPass=True
+                ),
+            )
+
+        # Legacy clarify path (kept for safety)
         if intent_result["status"] == "clarify":
             return _clarify_output(input_obj.sessionId, intent_result)
 

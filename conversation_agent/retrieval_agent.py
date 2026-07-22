@@ -441,37 +441,78 @@ _PII_PATTERN = re.compile(
 )
 
 
-def _build_query(intent_result: dict, input_obj: AgentInput) -> str:
+def _build_primary_query(intent_result: dict, input_obj: AgentInput) -> str:
     """
-    Build a clean MCP search query.
-    Use the user's original input as the base — it is the most natural
-    signal for the search engine. Append audience and iteration hint only
-    as a suffix so the core query stays readable.
-    """
-    user_q = input_obj.userInput.strip()
-    aud    = input_obj.audience
-    prior  = input_obj.sessionStore.priorQueries
-    entities = intent_result.get("entities", [])
+    Build the primary MCP search query from the Layer 1 queryFocus.
 
-    # Start from the user's own words
-    base = user_q
-    # Add audience context only when it adds meaning
-    if aud and aud not in ("developer", "intermediate"):
-        base = f"{base} for {aud}"
-    # On loop re-entry, steer away from the previous attempt
-    if input_obj.sessionStore.iterationCount > 0 and prior:
+    The queryFocus is set by the Intent Agent as:
+      "<intent_name> — <entity_phrase> — <full_user_input>"
+
+    We extract the original user query (the richest natural-language signal)
+    and append the entity phrase for precision, then PII-redact.
+    """
+    query_focus = input_obj.sessionStore.userPreferences.get(
+        "selectedQueryFocus",
+        intent_result.get("queryFocus", input_obj.userInput),
+    )
+    # Extract the original user query from the queryFocus (part after 2nd " — ")
+    parts = query_focus.split(" — ", 2)
+    base = parts[2].strip() if len(parts) == 3 else input_obj.userInput.strip()
+
+    # Append entity phrase if not already present in base
+    entities = intent_result.get("entities", [])
+    if entities:
+        ent_str = " ".join(entities[:3])
+        if ent_str.lower() not in base.lower():
+            base = f"{base} {ent_str}"
+
+    # On loop re-entry steer away from the prior result
+    if input_obj.sessionStore.iterationCount > 0:
         base = f"{base} alternative approach"
-    return _PII_PATTERN.sub("[REDACTED]", base)
+
+    return _PII_PATTERN.sub("[REDACTED]", base.strip())
+
+
+def _build_entity_query(intent_result: dict) -> str:
+    """
+    Precision query: intent keyword + detected entities.
+    Used as a second MCP call to fill gaps the primary query may miss.
+    """
+    intent = intent_result.get("chosenIntent", "")
+    entities = intent_result.get("entities", [])
+    keyword_map = {
+        "configure_oauth":  "configure OAuth 2.0",
+        "setup_auth":       "set up authentication",
+        "code_request":     "code example",
+        "troubleshoot":     "troubleshoot error",
+        "policy_lookup":    "policy",
+        "concept_explain":  "what is",
+        "general_howto":    "how to",
+    }
+    kw = keyword_map.get(intent, "")
+    ent = " ".join(entities[:2]) if entities else ""
+    return _PII_PATTERN.sub("[REDACTED]", f"{kw} {ent}".strip())
 
 
 def _suggest_refinements(user_input: str, intent: str) -> list[str]:
-    """Plain-language refinements derived from the user's own words."""
     words = user_input.strip().rstrip("?").strip()
     narrower = f"{words} step-by-step with code example"
-    # Broader: first 4-5 words of the query
-    short = " ".join(words.split()[:5])
+    short    = " ".join(words.split()[:5])
     broader  = f"{short} overview and concepts"
     return [narrower, broader]
+
+
+def _dedup_chunks(chunks: list[dict]) -> list[dict]:
+    """Remove duplicate chunks by chunk_id, preserving order."""
+    seen: set[str] = set()
+    out: list[dict] = []
+    for c in chunks:
+        cid = c.get("chunk_id", "")
+        if cid and cid in seen:
+            continue
+        seen.add(cid)
+        out.append(c)
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -479,7 +520,17 @@ def _suggest_refinements(user_input: str, intent: str) -> list[str]:
 # ---------------------------------------------------------------------------
 
 class RetrievalAgent:
-    """Agent 2 — RAG retrieval via MS Learn MCP + watsonx FAISS re-ranking."""
+    """
+    Agent 2 — Information Retrieval Agent.
+
+    Retrieves everything the Intent Agent found relevant from MS Learn MCP:
+      1. Primary query  — derived from the full queryFocus selected in Layer 1
+      2. Entity query   — precision search (intent keyword + entities)
+      3. Code query     — for code_request / configure_oauth intents
+
+    All results are deduplicated, embedded, FAISS-indexed, and re-ranked.
+    The Content Agent receives the full ranked result set.
+    """
 
     def __init__(self, model: object = None) -> None:
         self._model = model
@@ -497,64 +548,77 @@ class RetrievalAgent:
             }
 
         session_store: SessionStore = input_obj.sessionStore
-        iteration = session_store.iterationCount
-        strictness = 3 if iteration % 2 == 1 else 2
+        iteration     = session_store.iterationCount
+        intent        = intent_result.get("chosenIntent", "default")
 
-        # --- MCP session ---
+        # MCP session init
         if not session_store.mcpSessionId:
             session_store.mcpSessionId = (
                 f"mock-session-{uuid.uuid4().hex[:8]}" if MOCK_MODE
                 else _initialize_mcp_session()
             )
 
-        # --- Retrieve ---
-        query = _build_query(intent_result, input_obj)
+        # Build queries
+        primary_q = _build_primary_query(intent_result, input_obj)
+        entity_q  = _build_entity_query(intent_result)
+
         if MOCK_MODE:
-            raw_chunks = _mock_chunks(intent_result.get("chosenIntent", "default"), iteration)
+            raw_chunks = _mock_chunks(intent, iteration)
         else:
-            # Use code search for code-heavy intents, docs search otherwise
-            intent = intent_result.get("chosenIntent", "")
+            raw_chunks: list[dict] = []
+
+            # Code-heavy intents: code sample search first, then docs
             if intent in ("configure_oauth", "code_request"):
-                raw_chunks = _call_search_code(query, session_store.mcpSessionId)
-                # Supplement with docs search
-                raw_chunks += _call_search_docs(query, session_store.mcpSessionId)
-            else:
-                raw_chunks = _call_search_docs(query, session_store.mcpSessionId)
+                entities = intent_result.get("entities", [])
+                ent_str  = " ".join(entities).lower()
+                lang = (
+                    "python"     if "python"     in ent_str else
+                    "typescript" if "typescript" in ent_str else
+                    "javascript"
+                )
+                raw_chunks.extend(_call_search_code(primary_q, session_store.mcpSessionId, lang))
+
+            # Primary docs search — always runs
+            raw_chunks.extend(_call_search_docs(primary_q, session_store.mcpSessionId))
+
+            # Entity precision search — runs when entity_q adds new signal
+            if entity_q and entity_q != primary_q:
+                raw_chunks.extend(_call_search_docs(entity_q, session_store.mcpSessionId))
+
+            # Deduplicate before embedding
+            raw_chunks = _dedup_chunks(raw_chunks)
 
         if not raw_chunks:
             return {
                 "results": [], "avgScore": 0.0, "lowConfidence": True,
-                "suggestedRefinements": _suggest_refinements(input_obj.userInput, intent_result.get("chosenIntent", "")),
+                "suggestedRefinements": _suggest_refinements(input_obj.userInput, intent),
                 "mcpSessionId": session_store.mcpSessionId, "indexSize": 0,
             }
 
-        # --- Embed + upsert FAISS ---
-        texts = [c["text"] for c in raw_chunks]
+        # Embed + FAISS upsert
+        texts      = [c["text"] for c in raw_chunks]
         embeddings = _embed(texts)
         _upsert_faiss(embeddings, raw_chunks, session_store)
 
-        # --- Re-rank from full session index ---
-        reranked = _rerank(query, session_store, top_k=5)
+        # Re-rank from full session index using the primary query
+        reranked = _rerank(primary_q, session_store, top_k=5)
         if not reranked:
             reranked = raw_chunks
 
-        # FAISS inner-product scores on (mock or live) unit vectors are not
-        # meaningful as confidence values — they depend on embedding geometry.
-        # Use FAISS only for ORDERING; restore the original MCP position-based
-        # scores (0.95 → 0.75 → …) which ARE meaningful relative relevance signals.
+        # Restore MCP position-based scores for confidence calculation
+        # (FAISS is used only for ordering; its raw scores are not calibrated)
         chunk_scores = {c["chunk_id"]: c["score"] for c in raw_chunks}
         for r in reranked:
             r["score"] = chunk_scores.get(r["chunk_id"], r["score"])
 
-        avg_score = round(sum(r["score"] for r in reranked) / len(reranked), 4)
-
+        avg_score      = round(sum(r["score"] for r in reranked) / len(reranked), 4)
         low_confidence = avg_score < 0.45
 
         return {
             "results": reranked,
             "avgScore": avg_score,
             "lowConfidence": low_confidence,
-            "suggestedRefinements": _suggest_refinements(input_obj.userInput, intent_result.get("chosenIntent", "")),
+            "suggestedRefinements": _suggest_refinements(input_obj.userInput, intent),
             "mcpSessionId": session_store.mcpSessionId,
             "indexSize": len(session_store.faissChunks),
         }

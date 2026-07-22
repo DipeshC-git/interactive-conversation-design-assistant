@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MS Learn Conversation Assistant</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;font-size:14px;line-height:1.6;color:#161616;background:#f4f4f4;display:flex;flex-direction:column}
+.appbar{height:48px;background:#161616;display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;z-index:10}
+.appbar-logo{width:24px;height:24px;background:#0f62fe;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.appbar-logo svg{width:14px;height:14px;fill:#fff}
+.appbar-title{font-size:14px;font-weight:600;color:#fff;letter-spacing:.01em}
+.appbar-sub{font-size:11px;color:#8d8d8d;margin-left:2px}
+.appbar-spacer{flex:1}
+.appbar-pill{font-size:10px;padding:3px 9px;border-radius:12px;background:#defbe6;color:#044317;font-weight:600;border:1px solid #a7f0ba}
+.appbar-meta{font-size:11px;color:#6f6f6f;display:flex;align-items:center;gap:6px}
+.appbar-dot{width:7px;height:7px;border-radius:50%;background:#42be65;flex-shrink:0}
+.body{flex:1;display:flex;overflow:hidden}
+.sidebar{width:260px;min-width:260px;background:#fff;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:16px 16px 10px;border-bottom:1px solid #e0e0e0}
+.sidebar-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#6f6f6f;font-weight:600;margin-bottom:8px}
+.topic-btn{width:100%;text-align:left;padding:8px 10px;border:1px solid #e0e0e0;border-radius:5px;background:#f4f4f4;cursor:pointer;font-size:12.5px;color:#161616;margin-bottom:5px;display:flex;align-items:center;gap:8px;transition:background .12s}
+.topic-btn:hover{background:#edf5ff;border-color:#0f62fe;color:#0f62fe}
+.topic-btn .ti{width:14px;height:14px;flex-shrink:0;opacity:.6}
+.sidebar-history{flex:1;overflow-y:auto;padding:12px 16px}
+.history-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#6f6f6f;font-weight:600;margin-bottom:8px}
+.history-item{padding:7px 8px;border-radius:4px;cursor:pointer;font-size:12px;color:#525252;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.history-item:hover{background:#f4f4f4;color:#161616}
+.history-item.active{background:#edf5ff;color:#0f62fe;font-weight:500}
+.sidebar-footer{padding:12px 16px;border-top:1px solid #e0e0e0;font-size:11px;color:#8d8d8d;line-height:1.5}
+.sidebar-footer strong{color:#525252;display:block;margin-bottom:2px}
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#f4f4f4}
+.session-bar{background:#fff;border-bottom:1px solid #e0e0e0;padding:8px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.session-badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#f4f4f4;border:1px solid #e0e0e0;color:#525252;display:flex;align-items:center;gap:4px}
+.session-badge .sd{width:6px;height:6px;border-radius:50%;background:#8d8d8d}
+.session-badge.live .sd{background:#42be65}
+.session-badge.live{color:#044317;background:#defbe6;border-color:#a7f0ba}
+.session-iter{font-size:11px;color:#6f6f6f}
+.confidence-badge{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.conf-high{background:#defbe6;color:#044317;border:1px solid #a7f0ba}
+.conf-med{background:#fff8e1;color:#b45309;border:1px solid #fde68a}
+.conf-low{background:#fff1f1;color:#a2191f;border:1px solid #ffd7d9}
+.messages{flex:1;overflow-y:auto;padding:24px 24px 8px;display:flex;flex-direction:column;gap:20px}
+.msg-row{display:flex;gap:12px;align-items:flex-start}
+.msg-row.user{flex-direction:row-reverse}
+.avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:2px}
+.avatar.ai{background:#0f62fe;color:#fff}
+.avatar.user{background:#6929c4;color:#fff}
+.bubble{max-width:78%;background:#fff;border:1px solid #e0e0e0;border-radius:0 10px 10px 10px;padding:14px 16px;font-size:13px;line-height:1.65;color:#161616;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.msg-row.user .bubble{background:#0f62fe;color:#fff;border:none;border-radius:10px 0 10px 10px;box-shadow:0 1px 3px rgba(15,98,254,.25)}
+.bubble h2{font-size:14px;font-weight:700;margin:12px 0 5px;color:#161616;border-bottom:1px solid #e0e0e0;padding-bottom:4px}
+.bubble h2:first-child{margin-top:0}
+.bubble h3{font-size:13px;font-weight:600;margin:10px 0 4px;color:#161616}
+.bubble p{margin-bottom:8px}
+.bubble p:last-child{margin-bottom:0}
+.bubble ul,.bubble ol{padding-left:18px;margin-bottom:8px}
+.bubble li{margin-bottom:3px}
+.bubble code{background:#f4f4f4;border:1px solid #e0e0e0;border-radius:3px;padding:1px 5px;font-family:"Cascadia Code","Fira Code","Consolas",monospace;font-size:11.5px;color:#161616}
+.bubble pre{background:#161616;border-radius:6px;padding:12px 14px;margin:8px 0;overflow-x:auto}
+.bubble pre code{background:none;border:none;padding:0;font-size:11.5px;color:#e6edf3;line-height:1.65}
+.bubble table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.bubble th{background:#f4f4f4;text-align:left;padding:6px 9px;border-bottom:2px solid #e0e0e0;font-weight:600;font-size:11.5px}
+.bubble td{padding:6px 9px;border-bottom:1px solid #e0e0e0;vertical-align:top}
+.bubble a{color:#0f62fe;text-decoration:none}
+.bubble a:hover{text-decoration:underline}
+.bubble .blockquote{border-left:3px solid #0f62fe;padding:6px 12px;background:#f0f7ff;border-radius:0 4px 4px 0;margin:8px 0;font-size:12.5px;color:#161616}
+.bubble hr{border:none;border-top:1px solid #e0e0e0;margin:12px 0}
+.bubble .read-time{font-size:11px;color:#8d8d8d;margin-top:6px;display:flex;align-items:center;gap:4px}
+.options-block{margin-top:12px}
+.options-title{font-size:11.5px;font-weight:600;color:#161616;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.options-title::before{content:'';display:inline-block;width:3px;height:12px;background:#0f62fe;border-radius:2px}
+.options-group{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;cursor:pointer;text-align:left;width:100%;border:1px solid #e0e0e0;background:#f9f9f9;transition:all .12s}
+.opt:hover{background:#edf5ff;border-color:#0f62fe}
+.opt-ltr{width:22px;height:22px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#0f62fe;color:#fff}
+.opt-body{flex:1;min-width:0}
+.opt-text{font-size:12.5px;color:#161616;line-height:1.4;font-weight:500}
+.opt-hint{font-size:11px;color:#6f6f6f;margin-top:1px}
+.opt-arrow{font-size:13px;color:#0f62fe;flex-shrink:0;font-weight:600}
+.opt.source{border-color:#8a3ffc;background:#faf5ff}
+.opt.source:hover{background:#f3e8ff;border-color:#6929c4}
+.opt.source .opt-ltr{background:#8a3ffc}
+.opt.source .opt-arrow{color:#8a3ffc}
+.opt.source .opt-hint{color:#8a3ffc;font-weight:500}
+.typing{display:flex;align-items:center;gap:4px;padding:12px 16px;background:#fff;border:1px solid #e0e0e0;border-radius:0 10px 10px 10px;width:fit-content}
+.typing span{width:7px;height:7px;border-radius:50%;background:#8d8d8d;display:inline-block;animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.input-bar{background:#fff;border-top:1px solid #e0e0e0;padding:14px 24px;display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
+.input-wrap{flex:1;position:relative}
+.chat-input{width:100%;border:1px solid #8d8d8d;border-radius:6px;padding:10px 14px;font-size:13px;font-family:inherit;resize:none;min-height:42px;max-height:100px;color:#161616;background:#fff;line-height:1.5}
+.chat-input:focus{outline:2px solid #0f62fe;outline-offset:-2px;border-color:transparent}
+.chat-input::placeholder{color:#a8a8a8}
+.send-btn{width:40px;height:40px;background:#0f62fe;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .12s}
+.send-btn:hover{background:#0353e9}
+.send-btn svg{width:16px;height:16px;fill:#fff}
+.input-hint{font-size:11px;color:#8d8d8d;margin-top:5px;text-align:center}
+.info-panel{width:236px;min-width:236px;background:#fff;border-left:1px solid #e0e0e0;overflow-y:auto;padding:16px}
+.info-section{margin-bottom:18px}
+.info-heading{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#6f6f6f;font-weight:600;margin-bottom:8px}
+.arch-card{border:1px solid #e0e0e0;border-radius:5px;padding:9px 11px;margin-bottom:6px;background:#f9f9f9}
+.arch-card-title{font-size:12px;font-weight:600;color:#161616;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+.arch-card-title .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-blue{background:#0f62fe}
+.dot-purple{background:#8a3ffc}
+.dot-green{background:#24a148}
+.arch-card-desc{font-size:11px;color:#6f6f6f;line-height:1.45}
+.rule-item{font-size:11.5px;color:#525252;padding:4px 0;border-bottom:1px solid #f0f0f0;display:flex;gap:6px;align-items:flex-start;line-height:1.4}
+.rule-item:last-child{border-bottom:none}
+.rule-item .ri{color:#0f62fe;font-weight:700;flex-shrink:0;font-size:11px}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#c6c6c6;border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <div class="appbar-logo">
+    <svg viewBox="0 0 16 16"><path d="M8 1L1 4.5v7L8 15l7-3.5v-7L8 1zm0 1.8l5 2.5v5.6l-5 2.5-5-2.5V5.3l5-2.5z"/></svg>
+  </div>
+  <div class="appbar-title">MS Learn Conversation Assistant</div>
+  <div class="appbar-sub">— powered by watsonx Orchestrate</div>
+  <div class="appbar-spacer"></div>
+  <div class="appbar-meta"><div class="appbar-dot"></div> MCP Connected</div>
+  <div style="width:1px;height:20px;background:#393939;margin:0 8px"></div>
+  <div class="appbar-pill">Live</div>
+</div>
+
+<div class="body">
+
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-label">Start with a topic</div>
+      <button class="topic-btn">
+        <svg class="ti" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm-.5 3h1v5h-1V4zm0 6h1v1.5h-1V10z"/></svg>
+        What is OAuth 2.0?
+      </button>
+      <button class="topic-btn">
+        <svg class="ti" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v1.5H2V3zm0 4h12v1.5H2V7zm0 4h8v1.5H2V11z"/></svg>
+        Register an app in Entra ID
+      </button>
+      <button class="topic-btn">
+        <svg class="ti" viewBox="0 0 16 16" fill="currentColor"><path d="M5 2h6l3 3v9H2V2h3zm0 1.5H3.5V13h9V5.5H8V2.5H5V3.5zm4 .5v2h2.5L9 4z"/></svg>
+        MSAL token acquisition code
+      </button>
+      <button class="topic-btn">
+        <svg class="ti" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1C4.13 1 1 4.13 1 8s3.13 7 7 7 7-3.13 7-7-3.13-7-7-7zm1 10.5H7v-5h2v5zm0-6.5H7V3.5h2V5z"/></svg>
+        Azure AD vs Entra ID differences
+      </button>
+      <button class="topic-btn">
+        <svg class="ti" viewBox="0 0 16 16" fill="currentColor"><path d="M13 1H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zM7 11.5L3.5 8 5 6.5l2 2 4-4L12.5 6 7 11.5z"/></svg>
+        Configure API permissions
+      </button>
+    </div>
+    <div class="sidebar-history">
+      <div class="history-label">Session history</div>
+      <div class="history-item active">Register app in Entra ID</div>
+      <div class="history-item">Configure API permissions</div>
+      <div class="history-item">MSAL Python token example</div>
+    </div>
+    <div class="sidebar-footer">
+      <strong>Architecture</strong>
+      Context Aware Agent → MS Learn MCP → Content Representation layer
+    </div>
+  </div>
+
+  <div class="chat-area">
+    <div class="session-bar">
+      <div class="session-badge live"><div class="sd"></div> Session active</div>
+      <div class="session-iter" id="iterLabel">Turn 2 of session</div>
+      <div class="session-badge" style="margin-left:8px">
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="#525252"><path d="M8 1L1 4.5v7L8 15l7-3.5v-7L8 1zm0 1.8l5 2.5v5.6l-5 2.5-5-2.5V5.3l5-2.5z"/></svg>
+        microsoft_learn_search
+      </div>
+      <div class="confidence-badge conf-high" id="confBadge">High confidence</div>
+    </div>
+
+    <div class="messages" id="messages">
+
+      <div class="msg-row">
+        <div class="avatar ai">AI</div>
+        <div class="bubble">
+          <p>Hi — I'm your MS Learn Conversation Assistant. Ask me anything about Microsoft technologies. I retrieve live documentation from Microsoft Learn and give you a structured, immediately actionable answer.</p>
+          <div class="options-block">
+            <div class="options-title">Where would you like to start?</div>
+            <div class="options-group">
+              <button class="opt" data-msg="How do I register an application in Microsoft Entra ID?"><span class="opt-ltr">A</span><span class="opt-body"><span class="opt-text">How do I register an app in Microsoft Entra ID?</span></span><span class="opt-arrow">›</span></button>
+              <button class="opt" data-msg="Explain the OAuth 2.0 authorization code flow."><span class="opt-ltr">B</span><span class="opt-body"><span class="opt-text">Explain the OAuth 2.0 authorization code flow.</span></span><span class="opt-arrow">›</span></button>
+              <button class="opt" data-msg="Show me MSAL token acquisition code in Python."><span class="opt-ltr">C</span><span class="opt-body"><span class="opt-text">Show me MSAL token acquisition code in Python.</span></span><span class="opt-arrow">›</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg-row user">
+        <div class="avatar user">U</div>
+        <div class="bubble">How do I register an application in Microsoft Entra ID?</div>
+      </div>
+
+      <div class="msg-row">
+        <div class="avatar ai">AI</div>
+        <div class="bubble">
+          <h2>Register an application in Microsoft Entra ID</h2>
+          <div class="blockquote"><strong>Quick answer:</strong> Registering an app creates a service principal in your tenant and gives the app credentials to authenticate users or call APIs.</div>
+          <h3>Prerequisites</h3>
+          <ul>
+            <li>An active Azure subscription with a Microsoft Entra ID (formerly Azure Active Directory, or AAD) tenant.</li>
+            <li>A user account with the Application Administrator or Global Administrator role.</li>
+            <li>The redirect URI for your application (e.g. <code>https://localhost:3000/callback</code>).</li>
+          </ul>
+          <h3>Steps</h3>
+          <ol>
+            <li>Sign in to the <a href="https://entra.microsoft.com" target="_blank" rel="noopener">Microsoft Entra admin center</a>.</li>
+            <li>Go to <strong>Identity › Applications › App registrations</strong>.</li>
+            <li>Select <strong>New registration</strong>.</li>
+            <li>Enter a display name for your application.</li>
+            <li>Under <strong>Supported account types</strong>, choose who can use the app.</li>
+            <li>Add your <strong>Redirect URI</strong> and select the platform (Web, SPA, or Mobile).</li>
+            <li>Select <strong>Register</strong>. Copy the <strong>Application (client) ID</strong> and <strong>Directory (tenant) ID</strong>.</li>
+            <li>Go to <strong>Certificates &amp; secrets</strong> and create a client secret. Store it immediately — it will not be shown again.</li>
+          </ol>
+          <h3>Verify</h3>
+          <ul>
+            <li>The app appears in the <strong>App registrations</strong> list with the name and client ID you set.</li>
+            <li>Under <strong>Overview</strong>, confirm the tenant ID matches your directory.</li>
+          </ul>
+          <h3>Troubleshooting</h3>
+          <table>
+            <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+            <tbody>
+              <tr><td>401 Unauthorized on token request</td><td>Redirect URI mismatch</td><td>Confirm the URI registered exactly matches the one in your app config, including trailing slash.</td></tr>
+              <tr><td>AADSTS70011: Invalid scope</td><td>API permission not granted</td><td>Go to <strong>API permissions</strong> and grant admin consent for the required scope.</td></tr>
+            </tbody>
+          </table>
+          <div class="read-time"><svg width="11" height="11" viewBox="0 0 16 16" fill="#8d8d8d"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.5 7.5h-3V7h2V4h1v4.5z"/></svg> 2 min read</div>
+          <hr>
+          <div class="options-block">
+            <div class="options-title">What would you like to do next?</div>
+            <div class="options-group">
+              <button class="opt source" data-url="https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app"><span class="opt-ltr">A</span><span class="opt-body"><span class="opt-text">Read the full guide: Register an application with the Microsoft identity platform</span><span class="opt-hint">Opens Microsoft Learn ↗</span></span><span class="opt-arrow">↗</span></button>
+              <button class="opt" data-msg="Walk me through configuring API permissions and granting admin consent."><span class="opt-ltr">B</span><span class="opt-body"><span class="opt-text">Walk me through configuring API permissions and granting admin consent.</span></span><span class="opt-arrow">›</span></button>
+              <button class="opt" data-msg="I am building a single-page application."><span class="opt-ltr">C</span><span class="opt-body"><span class="opt-text">Are you building a user-facing web app, SPA, or a background daemon service?</span><span class="opt-hint">Helps me tailor the answer</span></span><span class="opt-arrow">›</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg-row user">
+        <div class="avatar user">U</div>
+        <div class="bubble">Walk me through configuring API permissions and granting admin consent.</div>
+      </div>
+
+      <div class="msg-row">
+        <div class="avatar ai">AI</div>
+        <div class="bubble">
+          <h2>Configure API permissions and grant admin consent</h2>
+          <div class="blockquote"><strong>Quick answer:</strong> API permissions declare which resources your app can access. Admin consent approves those permissions tenant-wide so users are not individually prompted.</div>
+          <h3>Steps</h3>
+          <ol>
+            <li>In <strong>App registrations</strong>, open your app and select <strong>API permissions</strong>.</li>
+            <li>Select <strong>Add a permission</strong>.</li>
+            <li>Choose <strong>Microsoft Graph</strong> or another API your app requires.</li>
+            <li>Select <strong>Delegated permissions</strong> for user-signed-in scenarios, or <strong>Application permissions</strong> for daemon scenarios.</li>
+            <li>Search for and select the permissions your app needs (e.g. <code>User.Read</code>, <code>Mail.Send</code>).</li>
+            <li>Select <strong>Add permissions</strong>.</li>
+            <li>Select <strong>Grant admin consent for [your tenant]</strong>, then confirm. The Status column shows a green checkmark.</li>
+          </ol>
+          <h3>Verify</h3>
+          <ul>
+            <li>Each permission shows <strong>Granted for [tenant]</strong> with a green ✓ in the Status column.</li>
+          </ul>
+          <h3>Troubleshooting</h3>
+          <table>
+            <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+            <tbody>
+              <tr><td>Grant admin consent button greyed out</td><td>Insufficient role</td><td>You need the Global Administrator or Privileged Role Administrator role.</td></tr>
+              <tr><td>Permission still shows "Not granted"</td><td>Propagation delay</td><td>Wait 1–2 minutes and refresh. Re-grant if it persists.</td></tr>
+            </tbody>
+          </table>
+          <div class="read-time"><svg width="11" height="11" viewBox="0 0 16 16" fill="#8d8d8d"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.5 7.5h-3V7h2V4h1v4.5z"/></svg> 2 min read</div>
+          <hr>
+          <div class="options-block">
+            <div class="options-title">What would you like to do next?</div>
+            <div class="options-group">
+              <button class="opt source" data-url="https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview"><span class="opt-ltr">A</span><span class="opt-body"><span class="opt-text">Read the full guide: Permissions and consent in the Microsoft identity platform</span><span class="opt-hint">Opens Microsoft Learn ↗</span></span><span class="opt-arrow">↗</span></button>
+              <button class="opt" data-msg="Show me how to acquire an access token using MSAL with these permissions."><span class="opt-ltr">B</span><span class="opt-body"><span class="opt-text">Show me how to acquire an access token using MSAL with these permissions.</span></span><span class="opt-arrow">›</span></button>
+              <button class="opt" data-msg="I need delegated permissions for a signed-in user."><span class="opt-ltr">C</span><span class="opt-body"><span class="opt-text">Do you need delegated permissions (signed-in user) or application permissions (background service)?</span><span class="opt-hint">Determines the correct permission type</span></span><span class="opt-arrow">›</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea class="chat-input" id="chatInput" rows="1" placeholder="Ask about any Microsoft technology…"></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn">
+        <svg viewBox="0 0 16 16"><path d="M1 1l14 7-14 7V9.5l10-1.5-10-1.5V1z"/></svg>
+      </button>
+    </div>
+    <div class="input-hint">MS Learn MCP · watsonx Orchestrate · Sources appear as options only — never as a list</div>
+  </div>
+
+  <div class="info-panel">
+    <div class="info-section">
+      <div class="info-heading">Architecture</div>
+      <div class="arch-card">
+        <div class="arch-card-title"><div class="dot dot-blue"></div> Context Aware Agent</div>
+        <div class="arch-card-desc">Main Orchestrate agent. Supervises flow, maintains session state, routes tool calls.</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-card-title"><div class="dot dot-purple"></div> MS Learn MCP Tool</div>
+        <div class="arch-card-desc">Streamable HTTP · learn.microsoft.com/api/mcp · Returns title, URL, content text.</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-card-title"><div class="dot dot-green"></div> Content Representation</div>
+        <div class="arch-card-desc">System prompt layer. DITA types, formatting rules, source dedup, conversation loop.</div>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-heading">Active rules</div>
+      <div class="rule-item"><span class="ri">✓</span> DITA response typing (TASK / CONCEPT / REFERENCE)</div>
+      <div class="rule-item"><span class="ri">✓</span> Sources as options only — no visible list</div>
+      <div class="rule-item"><span class="ri">✓</span> URL deduplication across session</div>
+      <div class="rule-item"><span class="ri">✓</span> One source option per closing block</div>
+      <div class="rule-item"><span class="ri">✓</span> Option rotation — no label repeats</div>
+      <div class="rule-item"><span class="ri">✓</span> Active voice · Grade 9 reading level</div>
+      <div class="rule-item"><span class="ri">✓</span> Code blocks require language tag</div>
+      <div class="rule-item"><span class="ri">✓</span> Escalation after 5 unresolved turns</div>
+    </div>
+    <div class="info-section">
+      <div class="info-heading">Session state</div>
+      <div class="rule-item"><span class="ri">·</span> Iteration: <strong id="stateIter">2</strong></div>
+      <div class="rule-item"><span class="ri">·</span> Sources shown: <strong id="stateSources">2 unique</strong></div>
+      <div class="rule-item"><span class="ri">·</span> Suppressed dupes: <strong id="stateDupes">0</strong></div>
+      <div class="rule-item"><span class="ri">·</span> Confidence: <strong id="stateConf">High</strong></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var turnCount = 2;
+var sourceCount = 2;
+
+var responses = {
+  "msal token": {
+    conf:"high",
+    html:`<h2>Acquire an access token with MSAL — Python Reference</h2>
+<div class="blockquote"><strong>Quick answer:</strong> Use <code>ConfidentialClientApplication</code> for daemon flows and <code>PublicClientApplication</code> for interactive user flows.</div>
+<h3>Code example — client credentials (daemon)</h3>
+<pre><code class="language-python"># Required: pip install msal
+# Security: store all secrets in environment variables.
+import os, msal
+
+app = msal.ConfidentialClientApplication(
+    client_id=os.environ["CLIENT_ID"],
+    authority="https://login.microsoftonline.com/" + os.environ["TENANT_ID"],
+    client_credential=os.environ["CLIENT_SECRET"],
+)
+result = app.acquire_token_for_client(
+    scopes=["https://graph.microsoft.com/.default"]
+)
+if "access_token" in result:
+    print(result["access_token"])
+else:
+    print(result.get("error_description"))</code></pre>
+<h3>Key parameters</h3>
+<table><thead><tr><th>Parameter</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>client_id</code></td><td>Application (client) ID from your Entra ID app registration.</td></tr>
+<tr><td><code>authority</code></td><td>Tenant-specific login URL. Replace <code>TENANT_ID</code> with your directory ID.</td></tr>
+<tr><td><code>client_credential</code></td><td>Client secret or certificate. Use a certificate in production.</td></tr>
+<tr><td><code>scopes</code></td><td>API resource URI with <code>/.default</code> suffix for client credentials flow.</td></tr>
+</tbody></table>`,
+    options:[
+      {type:"source",text:"Read the full guide: Acquire a token with MSAL Python",hint:"Opens Microsoft Learn ↗",url:"https://learn.microsoft.com/en-us/entra/msal/python/"},
+      {type:"task",text:"Show me the authorization code flow version for a signed-in user."},
+      {type:"clarify",text:"Are you calling Microsoft Graph, a custom API, or another service?",hint:"Determines the correct scope format"}
+    ]
+  },
+  "oauth": {
+    conf:"high",
+    html:`<h2>What is OAuth 2.0?</h2>
+<div class="blockquote"><strong>In one sentence:</strong> OAuth 2.0 is an authorization framework that lets an application obtain limited access to a user's resources on another service without exposing the user's credentials.</div>
+<h3>How it works</h3>
+<p>OAuth 2.0 separates the role of the resource owner (the user), the client (your app), the authorization server (e.g. Microsoft Entra ID), and the resource server (e.g. Microsoft Graph). Your app never sees the user's password.</p>
+<p>The user authenticates directly with the authorization server and grants your app a scoped access token. Your app uses that token to call the resource server on the user's behalf.</p>
+<h3>Key terms</h3>
+<table><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody>
+<tr><td>Access token</td><td>A short-lived credential your app presents to call an API.</td></tr>
+<tr><td>Refresh token</td><td>A longer-lived token used to get a new access token without re-prompting the user.</td></tr>
+<tr><td>Scope</td><td>A named permission that limits what the access token can do.</td></tr>
+<tr><td>Authorization code</td><td>A one-time code exchanged for tokens; never exposed to the browser.</td></tr>
+</tbody></table>
+<h3>When to use it</h3>
+<ul>
+<li>Your app needs to call an API on behalf of a signed-in user.</li>
+<li>You want to delegate authentication to a trusted identity provider.</li>
+<li>Your app cannot safely store a user's password.</li>
+</ul>`,
+    options:[
+      {type:"source",text:"Read the full guide: OAuth 2.0 and OpenID Connect on the Microsoft identity platform",hint:"Opens Microsoft Learn ↗",url:"https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols"},
+      {type:"task",text:"Walk me through the authorization code flow step by step."},
+      {type:"clarify",text:"Are you building a web app, a mobile app, or a server-to-server daemon?",hint:"Determines which OAuth 2.0 grant type applies"}
+    ]
+  },
+  "default": {
+    conf:"med",
+    html:`<h2>Microsoft Learn — Live Result</h2>
+<div class="blockquote"><strong>Note:</strong> In the deployed agent, this response is generated live by watsonx Orchestrate using content retrieved from the Microsoft Learn MCP tool. This UI preview shows interaction behaviour only.</div>
+<p>Your question has been received. The MS Learn MCP tool would search <code>learn.microsoft.com</code> for relevant documentation, and the Content Representation layer would type the response as TASK, CONCEPT, or REFERENCE before rendering it here with full formatting, accessibility, and deduplication rules applied.</p>`,
+    options:[
+      {type:"source",text:"Browse Microsoft Learn documentation",hint:"Opens Microsoft Learn ↗",url:"https://learn.microsoft.com"},
+      {type:"task",text:"Ask me a more specific question about this topic."},
+      {type:"clarify",text:"Which Microsoft product or service are you working with?"}
+    ]
+  }
+};
+
+function pickResponse(msg) {
+  var m = msg.toLowerCase();
+  if (m.indexOf("msal") !== -1 || m.indexOf("token") !== -1 || m.indexOf("python") !== -1) return responses["msal token"];
+  if (m.indexOf("oauth") !== -1) return responses["oauth"];
+  return responses["default"];
+}
+
+function makeOptions(opts) {
+  var letters = ["A","B","C"];
+  var h = '<div class="options-block"><div class="options-title">What would you like to do next?</div><div class="options-group">';
+  opts.forEach(function(o,i){
+    if(o.type==="source"){
+      h+='<button class="opt source" data-url="'+(o.url||"https://learn.microsoft.com")+'">';
+      h+='<span class="opt-ltr">'+letters[i]+'</span>';
+      h+='<span class="opt-body"><span class="opt-text">'+o.text+'</span><span class="opt-hint">'+(o.hint||"Opens Microsoft Learn ↗")+'</span></span>';
+      h+='<span class="opt-arrow">↗</span></button>';
+    } else {
+      h+='<button class="opt" data-msg="'+o.text.replace(/"/g,"&quot;")+'">';
+      h+='<span class="opt-ltr">'+letters[i]+'</span>';
+      h+='<span class="opt-body"><span class="opt-text">'+o.text+'</span>'+(o.hint?'<span class="opt-hint">'+o.hint+'</span>':'')+'</span>';
+      h+='<span class="opt-arrow">›</span></button>';
+    }
+  });
+  return h+'</div></div>';
+}
+
+function updateState(conf) {
+  turnCount++;
+  document.getElementById("iterLabel").textContent = "Turn "+turnCount+" of session";
+  document.getElementById("stateIter").textContent = turnCount;
+  var cb = document.getElementById("confBadge");
+  var sc = document.getElementById("stateConf");
+  if(conf==="high"){cb.className="confidence-badge conf-high";cb.textContent="High confidence";sc.textContent="High";}
+  else if(conf==="med"){cb.className="confidence-badge conf-med";cb.textContent="Medium confidence";sc.textContent="Medium";}
+  else{cb.className="confidence-badge conf-low";cb.textContent="Low confidence";sc.textContent="Low";}
+  sourceCount++;
+  document.getElementById("stateSources").textContent = sourceCount+" unique";
+}
+
+function bindOptions(container) {
+  container.querySelectorAll(".opt[data-msg]").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      sendMessage(this.getAttribute("data-msg"));
+    });
+  });
+  container.querySelectorAll(".opt.source[data-url]").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      window.open(this.getAttribute("data-url"),"_blank","noopener");
+    });
+  });
+}
+
+function sendMessage(text) {
+  if(!text.trim()) return;
+  var msgs = document.getElementById("messages");
+  document.getElementById("chatInput").value="";
+
+  var userRow = document.createElement("div");
+  userRow.className="msg-row user";
+  userRow.innerHTML='<div class="avatar user">U</div><div class="bubble">'+text.replace(/</g,"&lt;")+'</div>';
+  msgs.appendChild(userRow);
+
+  var typingRow = document.createElement("div");
+  typingRow.className="msg-row";
+  typingRow.innerHTML='<div class="avatar ai">AI</div><div class="typing"><span></span><span></span><span></span></div>';
+  msgs.appendChild(typingRow);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(function(){
+    msgs.removeChild(typingRow);
+    var r = pickResponse(text);
+    updateState(r.conf);
+
+    var aiRow = document.createElement("div");
+    aiRow.className="msg-row";
+    var bubble = document.createElement("div");
+    bubble.className="bubble";
+    bubble.innerHTML = r.html
+      + '<div class="read-time"><svg width="11" height="11" viewBox="0 0 16 16" fill="#8d8d8d"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.5 7.5h-3V7h2V4h1v4.5z"/></svg> 2 min read</div><hr>'
+      + makeOptions(r.options);
+    aiRow.innerHTML='<div class="avatar ai">AI</div>';
+    aiRow.appendChild(bubble);
+    msgs.appendChild(aiRow);
+    bindOptions(aiRow);
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 900);
+}
+
+bindOptions(document.getElementById("messages"));
+
+document.querySelectorAll(".topic-btn").forEach(function(btn){
+  btn.addEventListener("click",function(){ sendMessage(this.textContent.trim()); });
+});
+
+document.getElementById("sendBtn").addEventListener("click",function(){
+  sendMessage(document.getElementById("chatInput").value.trim());
+});
+
+document.getElementById("chatInput").addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&!e.shiftKey){
+    e.preventDefault();
+    sendMessage(this.value.trim());
+    this.value="";
+  }
+});
+</script>
+</body>
+</html>

@@ -1,9 +1,9 @@
 {
   "sessionId": "test-a",
-  "responseType": "answer",
-  "responseText": "Here's a refined result for azure, azure ad \u2014 hope this is closer to what you need.",
+  "responseType": "low_confidence",
+  "responseText": "We're still looking for the best answer about azure, azure ad. Try refining your search.",
   "format": "code_snippet",
-  "content": "> *Showing result set 2 \u2014 refined for you*\n\n\n> **Insight:** Here's what we found for developers: # Configure authentication in a sample Node.js web application by usi See the full details below.\n\n\n## Code Example\n\n```javascript\n// Required packages: @azure/msal-node (npm install @azure/msal-node)\n// Security: store clientSecret in environment variables \u2014 never in source code.\nconst msal = require('@azure/msal-node');\n\nconst config = {\n  auth: {\n    clientId: process.env.CLIENT_ID,       // App registration client ID\n    authority: 'https://login.microsoftonline.com/' + process.env.TENANT_ID,\n    clientSecret: process.env.CLIENT_SECRET,  // \u26a0 Keep this secret\n  },\n};\n\nconst cca = new msal.ConfidentialClientApplication(config);\n\n// Exchange auth code for access token\nasync function getToken(authCode) {\n  const tokenRequest = {\n    code: authCode,\n    scopes: ['User.Read'],\n    redirectUri: process.env.REDIRECT_URI,\n  };\n  const response = await cca.acquireTokenByCode(tokenRequest);\n  return response.accessToken;\n}\n```\n\n**Source:** [https://learn.microsoft.com/azure/active-directory-b2c/configure-a-sample-node-web-app#step-5-configure-the-sample-web-app](https://learn.microsoft.com/azure/active-directory-b2c/configure-a-sample-node-web-app#step-5-configure-the-sample-web-app)\n\n## Media\n\n![Diagram from configure-a-sample-node-web-app#step-5-configure-the-sample-web-app](https://learn.microsoft.com/azure/active-directory-b2c/media/configure-a-sample-node-web-app/tutorial-login-page.png)\n![Diagram from configure-a-sample-node-web-app#step-5-configure-the-sample-web-app](https://learn.microsoft.com/azure/active-directory-b2c/media/configure-a-sample-node-web-app/tutorial-dashboard-page.png)\n![Diagram from configure-a-sample-node-web-app#step-2-register-a-web-application](https://learn.microsoft.com/azure/active-directory-b2c/media/enable-authentication-web-api/app-with-api-architecture.png)\n\u25b6 [Integrations Learn Platform Api Catalog \n\n> *[See more\u2026]*",
+  "content": "We couldn't find a confident answer about **azure, azure ad** yet.\n\nHere are some refined search approaches that might help:\n\n- configure_oauth [azure, azure ad, node.js] \u2014 refining from: show_next for developer \u2014 alternative approach to: show_next step-by-step tutorial with code example\n- configure_oauth [azure, azure ad, overview",
   "interactiveOptions": [
     {
       "id": "show_next",
@@ -16,42 +16,26 @@
       "description": "Tell us this missed the mark on azure, azure ad and try a different angle"
     }
   ],
-  "sources": [
-    {
-      "file_path": "https://learn.microsoft.com/azure/active-directory-b2c/configure-a-sample-node-web-app#step-5-configure-the-sample-web-app",
-      "page_numbers": "",
-      "score": 1.0
-    },
-    {
-      "file_path": "https://learn.microsoft.com/azure/active-directory-b2c/configure-a-sample-node-web-app#step-2-register-a-web-application",
-      "page_numbers": "",
-      "score": 1.0
-    },
-    {
-      "file_path": "https://learn.microsoft.com/training/support/integrations-learn-platform-api-catalog-quickstart#set-up-the-project",
-      "page_numbers": "",
-      "score": 0.1403
-    }
-  ],
-  "confidence": "Medium",
-  "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiIyOGVhY2NkNi00ZGVkLTRmMmEtYTVmNi05NjExNjYxMzI2NDQifQ==",
+  "sources": [],
+  "confidence": "Low",
+  "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJkZWQwZDliZi1iODMxLTQ1NWItOWE2Yi0yNDc3YzE5NTBiNzIifQ==",
   "suggestedRefinements": [
     "configure_oauth [azure, azure ad, node.js] \u2014 refining from: show_next for developer \u2014 alternative approach to: show_next step-by-step tutorial with code example",
     "configure_oauth [azure, azure ad, overview"
   ],
-  "routeToHumanReview": false,
+  "routeToHumanReview": true,
   "estimatedReadTime": "1 min read",
   "validationReport": {
-    "clarityScore": 5,
-    "concisionScore": 3,
+    "clarityScore": 4,
+    "concisionScore": 5,
     "accessibilityPass": false
   },
   "_meta": {
     "test_id": "A",
     "iteration": 2,
-    "timestamp": "2026-07-20T21:12:52.082659+00:00",
+    "timestamp": "2026-07-20T22:18:32.162383+00:00",
     "mcp_called": true,
-    "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiIyOGVhY2NkNi00ZGVkLTRmMmEtYTVmNi05NjExNjYxMzI2NDQifQ==",
+    "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJkZWQwZDliZi1iODMxLTQ1NWItOWE2Yi0yNDc3YzE5NTBiNzIifQ==",
     "indexSize": 4,
     "mock_mode": "false"
   }

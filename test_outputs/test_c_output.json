@@ -24,7 +24,7 @@
     }
   ],
   "confidence": "High",
-  "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJlYzUzMDA5NS01MzU2LTRhZDAtODQ2Yy0xNmY3NTk3OTk5MmEifQ==",
+  "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJiZWUzOWUzNS0yMTVjLTQ3YmMtYmY4ZS1iMzMwOWY1NDQ3NzgifQ==",
   "suggestedRefinements": [
     "policy_lookup [contoso, device, reset] for admin step-by-step tutorial with code example",
     "policy_lookup [contoso, device, reset] overview"
@@ -39,9 +39,9 @@
   "_meta": {
     "test_id": "C",
     "iteration": 1,
-    "timestamp": "2026-07-20T21:12:55.539024+00:00",
+    "timestamp": "2026-07-20T22:18:42.424583+00:00",
     "mcp_called": true,
-    "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJlYzUzMDA5NS01MzU2LTRhZDAtODQ2Yy0xNmY3NTk3OTk5MmEifQ==",
+    "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJiZWUzOWUzNS0yMTVjLTQ3YmMtYmY4ZS1iMzMwOWY1NDQ3NzgifQ==",
     "indexSize": 1,
     "mock_mode": "false"
   }

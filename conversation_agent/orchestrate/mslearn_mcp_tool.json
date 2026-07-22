@@ -1,0 +1,61 @@
+{
+  "tool": {
+    "name": "microsoft_learn_search",
+    "display_name": "Microsoft Learn — Documentation Search",
+    "description": "Searches and retrieves official Microsoft Learn documentation, technical articles, code samples, and tutorials. Use this tool whenever the user asks a question about any Microsoft technology, product, service, API, SDK, or development pattern. Returns structured content including article text, titles, and canonical URLs.",
+    "type": "mcp",
+    "mcp": {
+      "transport": "streamable_http",
+      "url": "https://learn.microsoft.com/api/mcp",
+      "headers": {},
+      "timeout_ms": 30000,
+      "auto_approve": [
+        "search_documentation",
+        "search_code_samples"
+      ]
+    }
+  },
+  "tool_routing": {
+    "invoke_when": [
+      "User asks how to configure, set up, or use any Microsoft product or service",
+      "User asks what a Microsoft technology is or how it works",
+      "User asks for code examples related to any Microsoft SDK or API",
+      "User asks for best practices related to Azure, Microsoft 365, Entra ID, or related services",
+      "User asks a follow-up question that requires additional Microsoft documentation"
+    ],
+    "do_not_invoke_when": [
+      "The user's question is purely conversational or asks for a previous answer to be rephrased",
+      "The retrieved content from the current session already covers the user's follow-up question"
+    ]
+  },
+  "session_management": {
+    "reuse_session": true,
+    "session_id_context_key": "mcp_session_id",
+    "note": "Persist the MCP session ID across conversation turns. Pass it on every subsequent tool call to maintain server-side context and avoid re-initialisation overhead on each turn."
+  },
+  "deduplication": {
+    "strategy": "url_normalise_then_dedupe",
+    "note": "Before passing results to the agent for rendering, normalise all returned URLs (strip trailing slashes, lowercase scheme and host, remove tracking parameters: wt.mc_id, WT.mc_id, ocid, WT.srch, utm_*). Suppress any result whose normalised URL already appeared in a prior turn of this session."
+  },
+  "result_handling": {
+    "max_results_to_pass": 3,
+    "pass_to_agent_as": "retrieved_content",
+    "fields_to_include": [
+      "title",
+      "url",
+      "content_text",
+      "content_type"
+    ],
+    "fields_to_suppress_from_ui": [
+      "raw_score",
+      "chunk_index",
+      "embedding_vector",
+      "file_path",
+      "page_numbers"
+    ],
+    "source_rendering": {
+      "mode": "closing_line_only",
+      "note": "Sources must NEVER be rendered as a visible list, raw URL block, or Sources section. The most relevant retrieved URL surfaces exclusively as the final line of the agent response in the format: [See more: Article Title](canonical_url). Only one closing line per turn. If no valid URL was retrieved, the closing line is omitted."
+    }
+  }
+}
