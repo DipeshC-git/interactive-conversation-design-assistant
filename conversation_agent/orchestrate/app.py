@@ -6,8 +6,8 @@ Serves the Watson Orchestrate chat embed.
 
 Routes
 ------
-GET  /        Serve ui.html (no-cache)
-GET  /config  Credentials JSON consumed by ui.html to boot the SDK
+GET  /        Serve ui2.html (no-cache)
+GET  /config  Credentials JSON consumed by ui2.html to boot the SDK
 GET  /health  Liveness check
 """
 
@@ -54,7 +54,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    resp = send_from_directory(UI_DIR, "ui.html")
+    resp = send_from_directory(UI_DIR, "ui2.html")
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp.headers["Pragma"]        = "no-cache"
     resp.headers["Expires"]       = "0"
