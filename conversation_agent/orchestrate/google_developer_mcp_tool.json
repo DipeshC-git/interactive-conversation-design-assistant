@@ -7,7 +7,9 @@
     "mcp": {
       "transport": "streamable_http",
       "url": "https://developerknowledge.googleapis.com/mcp",
-      "headers": {},
+      "headers": {
+        "Authorization": "Bearer ${GOOGLE_DEVELOPER_MCP_TOKEN}"
+      },
       "timeout_ms": 30000,
       "auto_approve": [
         "search_documents",
@@ -16,11 +18,17 @@
       ]
     }
   },
+  "authentication": {
+    "note": "This endpoint requires an OAuth 2.0 bearer token. In watsonx Orchestrate Agent Builder, set the Authorization header value to your Google OAuth2 access token when registering this tool. The token must have the https://www.googleapis.com/auth/cloud-platform scope or equivalent developer knowledge scope.",
+    "header_name": "Authorization",
+    "header_format": "Bearer <your-google-oauth2-access-token>",
+    "obtain_token": "Run: gcloud auth print-access-token  OR  use a service account key with the correct scope."
+  },
   "tool_call_pattern": {
-    "note": "The Google MCP exposes three tools. Use them in this order: (1) Call search_documents with the user query to get matching chunks and document parent names. (2) If the chunks are not detailed enough, call get_documents with the parent name(s) from step 1 to retrieve full document content. (3) Optionally call answer_query for a grounded synthesised answer — note this has limited quota; fall back to search_documents if a 429 is returned.",
-    "step_1": "search_documents — input: { query: string } — returns: { results: [ { content, id, parent } ] }",
-    "step_2": "get_documents   — input: { names: [parent, ...] } — returns: { documents: [ { name, title, description, content, uri } ] }",
-    "step_3": "answer_query    — input: { query: string } — returns: { answerText, references: [name, ...] } — limited quota"
+    "note": "Three-tool pattern. (1) search_documents: search by query, returns chunks with content, id, parent. (2) get_documents: fetch full doc by parent name, returns title, description, content (Markdown), uri. (3) answer_query: grounded synthesis with limited quota — fall back to search_documents on 429.",
+    "step_1": "search_documents — { query: string } → { results: [{ content, id, parent }] }",
+    "step_2": "get_documents   — { names: [parent] } → { documents: [{ name, title, description, content, uri }] }",
+    "step_3": "answer_query    — { query: string } → { answerText, references: [name] }  (limited quota)"
   },
   "tool_routing": {
     "invoke_when": [
@@ -38,20 +46,17 @@
   },
   "session_management": {
     "reuse_session": true,
-    "session_id_context_key": "google_mcp_session_id",
-    "note": "Persist the Google MCP session ID across turns. Pass it on every subsequent call to avoid re-initialisation overhead."
+    "session_id_context_key": "google_mcp_session_id"
   },
   "deduplication": {
-    "strategy": "url_normalise_then_dedupe",
-    "note": "Normalise all returned URIs: strip trailing slashes, lowercase scheme and host, remove utm_*, hl, tab parameters. Suppress any URI already shown in a prior turn of this session."
+    "strategy": "url_normalise_then_dedupe"
   },
   "result_handling": {
     "max_results_to_pass": 3,
     "pass_to_agent_as": "retrieved_content",
     "fields_to_include": ["title", "uri", "content", "description"],
     "source_rendering": {
-      "mode": "closing_line_only",
-      "note": "The most relevant URI surfaces as the final line only: [See more: Article Title](uri). Never render a Sources section or URL list."
+      "mode": "closing_line_only"
     }
   }
 }
