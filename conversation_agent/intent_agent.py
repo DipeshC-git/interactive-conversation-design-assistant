@@ -3,20 +3,20 @@ Intent & Clarification Agent (Agent 1)
 
 Two-layer conversation architecture:
 
-  Layer 1 — always runs on first user turn.
+  Layer 1 - always runs on first user turn.
     Analyses the query, scores intents, extracts entities, then generates
-    3–5 CONTEXTUAL selection options derived from the actual query content.
-    These are NOT generic menus — they are specific angles on the user's
+    3-5 CONTEXTUAL selection options derived from the actual query content.
+    These are NOT generic menus - they are specific angles on the user's
     own words, ready for the user to pick the one that matches their need.
     Returns: {"status": "select", "options": list[L1Option]}
 
-  Layer 2 — runs after the user picks a Layer 1 option.
+  Layer 2 - runs after the user picks a Layer 1 option.
     The chosen option carries a sharpened queryFocus and chosenIntent.
     The orchestrator drives Retrieval → Content with that focus.
     Returns: {"status": "proceed", ...}
 
 On loop re-entry (iteration > 0) it sharpens intent from session context
-and always returns "proceed" — never re-presents Layer 1.
+and always returns "proceed" - never re-presents Layer 1.
 """
 from __future__ import annotations
 
@@ -43,8 +43,9 @@ INTENT_PATTERNS: dict[str, list[str]] = {
     ],
     "code_request": [
         "code", "snippet", "example", "sample", "node.js", "nodejs", "python",
-        "javascript", "typescript", "implement", "library", "sdk", "package",
-        "npm", "pip", "import",
+        "javascript", "typescript", "kotlin", "flutter", "dart", "swift",
+        "implement", "library", "sdk", "package",
+        "npm", "pip", "gradle", "pub", "import",
     ],
     "general_howto": [
         "how", "how to", "how do i", "steps", "guide", "tutorial",
@@ -60,13 +61,14 @@ INTENT_PATTERNS: dict[str, list[str]] = {
     ],
 }
 
-# Every intent drives retrieval — the retrieval agent decides what to fetch
+# Every intent drives retrieval - the retrieval agent decides what to fetch
 RETRIEVAL_INTENTS = {
     "configure_oauth", "setup_auth", "policy_lookup",
     "code_request", "general_howto", "troubleshoot", "concept_explain",
 }
 
 ENTITY_ALLOWLIST = [
+    # --- Microsoft ---
     "azure", "azure ad", "entra id", "node.js", "nodejs", "python", "javascript",
     "typescript", "oauth", "oauth2", "saml", "oidc", "openid", "active directory",
     "microsoft", "contoso", "device", "reset", "policy", "authentication",
@@ -74,6 +76,19 @@ ENTITY_ALLOWLIST = [
     "mfa", "multi-factor", "multifactor", "permissions", "consent", "scope",
     "msal", "adal", "pkce", "jwt", "access token", "refresh token", "id token",
     "401", "403", "500", "unauthorized", "forbidden",
+    # --- Google ---
+    "android", "firebase", "gcp", "google cloud", "gemini", "google maps",
+    "google workspace", "workspace", "bigquery", "cloud run", "vertex ai",
+    "flutter", "kotlin", "dart", "compose", "jetpack", "jetpack compose",
+    "cloud functions", "pub/sub", "pubsub", "cloud storage", "cloud sql",
+    "google identity", "google sign-in", "firebase auth", "firebase authentication",
+    "firestore", "realtime database", "firebase realtime database",
+    "cloud firestore", "firebase storage", "fcm", "firebase cloud messaging",
+    "google play", "play store", "app engine", "kubernetes engine", "gke",
+    "google kubernetes engine", "cloud build", "artifact registry",
+    "secret manager", "iam", "service account", "workload identity",
+    "google oauth", "google api", "google apis", "google sdk",
+    "android studio", "gradle", "apk", "aab",
 ]
 
 # Human-readable labels for intent names used in option copy
@@ -130,7 +145,7 @@ def _extract_entities(user_input: str) -> list[str]:
 
 
 def _needs_retrieval(intent: str, user_input: str) -> bool:
-    """Always retrieve for any recognised intent — retrieval is never skipped."""
+    """Always retrieve for any recognised intent - retrieval is never skipped."""
     if intent in RETRIEVAL_INTENTS:
         return True
     # Fallback: any explicit documentation signal
@@ -138,10 +153,14 @@ def _needs_retrieval(intent: str, user_input: str) -> bool:
     return any(sig in text for sig in ["docs", "documentation", "reference", "article"])
 
 
-# Entities that name a protocol/technology — preferred in labels
+# Entities that name a protocol/technology - preferred in labels
 _PROTOCOL_ENTITIES = {
+    # Microsoft protocols
     "oauth", "oauth2", "saml", "oidc", "openid", "msal", "adal", "pkce",
     "jwt", "sso", "mfa", "multi-factor", "multifactor",
+    # Google protocols / auth
+    "google sign-in", "firebase auth", "firebase authentication", "google oauth",
+    "google identity", "fcm", "firebase cloud messaging",
 }
 
 # Generic concept words that are not useful as a platform qualifier
@@ -152,10 +171,21 @@ _GENERIC_CONCEPTS = {
 
 # Specific platform / runtime names that make a good "for <platform>" qualifier
 _PLATFORM_ENTITIES = {
+    # Microsoft
     "azure", "azure ad", "entra id", "node.js", "nodejs", "python",
     "javascript", "typescript", "microsoft", "microsoft graph", "graph api",
     "msal", "adal", "active directory", "contoso",
     "401", "403", "500", "unauthorized", "forbidden",
+    # Google
+    "android", "firebase", "gcp", "google cloud", "gemini", "google maps",
+    "google workspace", "workspace", "bigquery", "cloud run", "vertex ai",
+    "flutter", "kotlin", "dart", "compose", "jetpack", "jetpack compose",
+    "cloud functions", "pub/sub", "pubsub", "cloud storage", "cloud sql",
+    "firestore", "realtime database", "firebase storage",
+    "google play", "play store", "app engine", "gke",
+    "google kubernetes engine", "cloud build", "artifact registry",
+    "secret manager", "iam", "service account",
+    "android studio", "gradle",
 }
 
 
@@ -194,6 +224,7 @@ def _entity_label(entities: list[str]) -> str:
 
 # Known display names that need specific casing
 _BRAND_CASE: dict[str, str] = {
+    # Microsoft
     "oauth": "OAuth", "oauth2": "OAuth 2.0", "saml": "SAML", "oidc": "OIDC",
     "openid": "OpenID", "msal": "MSAL", "adal": "ADAL", "pkce": "PKCE",
     "jwt": "JWT", "sso": "SSO", "mfa": "MFA", "api": "API", "sdk": "SDK",
@@ -206,6 +237,36 @@ _BRAND_CASE: dict[str, str] = {
     "multi-factor": "multi-factor", "multifactor": "multi-factor",
     "401": "401 Unauthorized", "403": "403 Forbidden", "500": "500 errors",
     "unauthorized": "401 Unauthorized", "forbidden": "403 Forbidden",
+    # Google
+    "android": "Android", "firebase": "Firebase", "gcp": "GCP",
+    "google cloud": "Google Cloud", "gemini": "Gemini",
+    "google maps": "Google Maps", "google workspace": "Google Workspace",
+    "workspace": "Google Workspace", "bigquery": "BigQuery",
+    "cloud run": "Cloud Run", "vertex ai": "Vertex AI",
+    "flutter": "Flutter", "kotlin": "Kotlin", "dart": "Dart",
+    "compose": "Jetpack Compose", "jetpack": "Jetpack",
+    "jetpack compose": "Jetpack Compose",
+    "cloud functions": "Cloud Functions", "pub/sub": "Pub/Sub",
+    "pubsub": "Pub/Sub", "cloud storage": "Cloud Storage",
+    "cloud sql": "Cloud SQL", "google identity": "Google Identity",
+    "google sign-in": "Google Sign-In",
+    "firebase auth": "Firebase Auth",
+    "firebase authentication": "Firebase Authentication",
+    "firestore": "Firestore", "cloud firestore": "Cloud Firestore",
+    "realtime database": "Realtime Database",
+    "firebase storage": "Firebase Storage",
+    "fcm": "FCM", "firebase cloud messaging": "Firebase Cloud Messaging",
+    "google play": "Google Play", "play store": "Google Play",
+    "app engine": "App Engine", "gke": "GKE",
+    "google kubernetes engine": "Google Kubernetes Engine",
+    "cloud build": "Cloud Build", "artifact registry": "Artifact Registry",
+    "secret manager": "Secret Manager", "iam": "IAM",
+    "service account": "service account",
+    "workload identity": "Workload Identity",
+    "google oauth": "Google OAuth", "google api": "Google API",
+    "google apis": "Google APIs", "google sdk": "Google SDK",
+    "android studio": "Android Studio", "gradle": "Gradle",
+    "apk": "APK", "aab": "AAB",
 }
 _CONNECTORS = {"for", "of", "in", "on", "the", "a", "an", "and", "or", "with", "to"}
 
@@ -213,14 +274,14 @@ _CONNECTORS = {"for", "of", "in", "on", "the", "a", "an", "and", "or", "with", "
 def _smart_case(phrase: str) -> str:
     """Apply known brand casing; keep connectors lowercase; title-case unknowns."""
     lower = phrase.lower()
-    # Check whole-phrase first (handles "azure ad", "entra id", etc.)
+    # Check whole-phrase first (handles "azure ad", "entra id", "google cloud", etc.)
     if lower in _BRAND_CASE:
         return _BRAND_CASE[lower]
     words = phrase.split(" ")
     result = []
     i = 0
     while i < len(words):
-        # Try two-word match first (e.g. "azure ad")
+        # Try two-word match first (e.g. "azure ad", "cloud run", "vertex ai")
         if i + 1 < len(words):
             two = f"{words[i]} {words[i+1]}".lower()
             if two in _BRAND_CASE:
@@ -247,8 +308,8 @@ def _build_l1_options(
     Generate Layer 1 selection options from the scored intents and entities.
 
     Rules:
-    - Always produce 3–5 options.
-    - Each option is specific to the user's query — uses their own words and
+    - Always produce 3-5 options.
+    - Each option is specific to the user's query - uses their own words and
       the detected entities, not generic category names.
     - The top-scored intent is always first.
     - If fewer than 3 intents scored, pad with the most useful adjacent intents
@@ -278,9 +339,9 @@ def _build_l1_options(
         raw_label = label_tpl.replace("{entity}", entity_display)
         label = raw_label[0].upper() + raw_label[1:]
         hint  = _INTENT_HINT.get(name, "")
-        # queryFocus carries: intent — entity phrase — full original query
+        # queryFocus carries: intent - entity phrase - full original query
         # The retrieval agent uses this as the primary MCP search string
-        query_focus = f"{name} — {entity} — {user_input}"
+        query_focus = f"{name} - {entity} - {user_input}"
         options.append({
             "id":            name,
             "label":         label,
@@ -297,7 +358,7 @@ def _sharpen_intent(intent_result: dict, input_obj: AgentInput) -> str:
     base     = intent_result.get("chosenIntent", "")
     entities = intent_result.get("entities", [])
     prior    = input_obj.sessionStore.priorQueries
-    prior_hint  = f" — refining from: {prior[-1]}" if prior else ""
+    prior_hint  = f" - refining from: {prior[-1]}" if prior else ""
     entity_hint = f" [{', '.join(entities[:3])}]" if entities else ""
     return f"{base}{entity_hint}{prior_hint}"
 
@@ -307,7 +368,7 @@ def _sharpen_intent(intent_result: dict, input_obj: AgentInput) -> str:
 # ---------------------------------------------------------------------------
 
 class IntentAgent:
-    """Agent 1 — Two-layer intent disambiguation and content routing."""
+    """Agent 1 - Two-layer intent disambiguation and content routing."""
 
     def __init__(self, model: object = None) -> None:
         self._model = model
@@ -361,7 +422,7 @@ class IntentAgent:
                 "queryFocus":    sharpened,
             }
 
-        # ── Layer 1: first turn — always return selection options ────────────
+        # ── Layer 1: first turn - always return selection options ────────────
         intents  = _score_intents(input_obj.userInput)
         entities = _extract_entities(input_obj.userInput)
         options  = _build_l1_options(intents, entities, input_obj.userInput)
