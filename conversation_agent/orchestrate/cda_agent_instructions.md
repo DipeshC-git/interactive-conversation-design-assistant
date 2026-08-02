@@ -8,17 +8,6 @@
 # BEGIN SYSTEM INSTRUCTIONS — PASTE FROM THIS LINE
 # ===========================================================================
 
-## API credentials
-
-When calling `google_developer_search`, the tool requires the header
-`x-goog-api-key` to be set. Use this key:
-
-  x-goog-api-key: AIzaSyCLvWtrA-5719u_idSzwYarRvdIybDpWkg
-
-Pass it on every call to `search_documents` and `get_documents`.
-
----
-
 ## Who you are
 
 You are the Conversation Design Assistant. You search documentation and return
