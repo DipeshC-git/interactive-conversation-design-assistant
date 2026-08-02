@@ -2,7 +2,7 @@
   "tool": {
     "name": "google_developer_search",
     "display_name": "Google Developer Knowledge",
-    "description": "Searches and retrieves official Google developer documentation, product guides, API references, code samples, and tutorials. Use this tool whenever the user asks a question about any Google technology — including Android, Firebase, Google Cloud (GCP), Gemini, Google Maps, Google Workspace, BigQuery, Cloud Run, Vertex AI, Flutter, Kotlin, Google Identity, Pub/Sub, TensorFlow, web.dev, or any developers.google.com or cloud.google.com content.",
+    "description": "Searches and retrieves official Google developer documentation, product guides, API references, code samples, and tutorials. Use this tool whenever the user asks a question about any Google technology - including Android, Firebase, Google Cloud (GCP), Gemini, Google Maps, Google Workspace, BigQuery, Cloud Run, Vertex AI, Flutter, Kotlin, Google Identity, Pub/Sub, TensorFlow, web.dev, or any developers.google.com or cloud.google.com content.",
     "type": "mcp",
     "mcp": {
       "transport": "streamable_http",
@@ -21,13 +21,13 @@
   "authentication": {
     "method": "api_key",
     "header": "x-goog-api-key",
-    "note": "Static Google API key — free, no expiry, no gcloud CLI. Get one at https://aistudio.google.com/apikey. In watsonx Orchestrate Agent Builder, set the x-goog-api-key header to your key when registering this tool. Store the same key as GOOGLE_API_KEY in your .env file for local testing."
+    "note": "IMPORTANT — watsonx Orchestrate Agent Builder does NOT interpolate ${GOOGLE_API_KEY} from .env. You must import google_developer_mcp_tool.import.json (not this file) into Agent Builder. That file has the real key baked in and is gitignored. Regenerate it by running: (Get-Content google_developer_mcp_tool.json -Raw) -replace '\\$\\{GOOGLE_API_KEY\\}', '<your-key>' | Set-Content google_developer_mcp_tool.import.json"
   },
   "tool_call_pattern": {
-    "note": "Three-tool pattern. (1) search_documents: search by query, returns chunks with content, id, parent. (2) get_documents: fetch full doc by parent name, returns title, description, content (Markdown), uri. (3) answer_query: grounded synthesis — limited quota, fall back to search_documents on 429.",
-    "step_1": "search_documents — { query: string } → { results: [{ content, id, parent }] }",
-    "step_2": "get_documents   — { names: [parent] } → { documents: [{ name, title, description, content, uri }] }",
-    "step_3": "answer_query    — { query: string } → { answerText, references: [name] }  (limited quota)"
+    "note": "Three-tool pattern. (1) search_documents: search by query, returns chunks with content, id, parent. (2) get_documents: fetch full doc by parent name, returns title, description, content (Markdown), uri. (3) answer_query: grounded synthesis - limited quota, fall back to search_documents on 429.",
+    "step_1": "search_documents - { query: string }  { results: [{ content, id, parent }] }",
+    "step_2": "get_documents   - { names: [parent] }  { documents: [{ name, title, description, content, uri }] }",
+    "step_3": "answer_query    - { query: string }  { answerText, references: [name] }  (limited quota)"
   },
   "tool_routing": {
     "invoke_when": [

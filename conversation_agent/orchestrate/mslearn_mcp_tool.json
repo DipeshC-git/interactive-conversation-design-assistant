@@ -10,8 +10,9 @@
       "headers": {},
       "timeout_ms": 30000,
       "auto_approve": [
-        "search_documentation",
-        "search_code_samples"
+        "microsoft_docs_search",
+        "microsoft_code_sample_search",
+        "microsoft_docs_fetch"
       ]
     }
   },

@@ -1,70 +1,71 @@
 ##############################################################################
-# watsonx Orchestrate - Architecture Definition
+# watsonx Orchestrate — Architecture Definition
 #
 # TWO-AGENT ARCHITECTURE (both are Agent Builder LLM agents)
 #
-#   ╔══════════════════════════════════════════════════════════════════════╗
-#   ║  Agent 1 - Conversation Design Assistant (Entry Point)               ║
-#   ║   Instructions: cda_agent_instructions.md                           ║
-#   ║   Tools: microsoft_learn_search (MCP)                               ║
-#   ║           google_developer_search (MCP)                             ║
-#   ║   Collaborator: ms_learn_article_writer (registered as a tool)      ║
-#   ║   Job: detect query source, search MS Learn or Google Developers,   ║
-#   ║        present TOPICS: numbered cards                               ║
-#   ║   On digit selection: call ms_learn_article_writer tool with title  ║
-#   ║   Never generates article content itself                            ║
-#   ║   SET as the Orchestration entry point                              ║
-#   ╠══════════════════════════════════════════════════════════════════════╣
-#   ║  Agent 2 - MS Learn Article Writer (Collaborator)                    ║
-#   ║   Instructions: article_writer_instructions.md                      ║
-#   ║   Tools: microsoft_learn_search (MCP)                               ║
-#   ║           google_developer_search (MCP)                             ║
-#   ║   Job: receive selected topic title, detect source (MS vs Google),  ║
-#   ║        fetch full article, return ARTICLE:                          ║
-#   ║   Prefixes every response with ARTICLE: sentinel                    ║
-#   ║   Ends every response with [See more: Title](url)                   ║
-#   ║   Never renders navigation cards or option menus                    ║
-#   ║   Do NOT set as Orchestration entry point                           ║
-#   ╠══════════════════════════════════════════════════════════════════════╣
-#   ║  Backend (silent) - Intent Agent (Python)                            ║
-#   ║   Runs in the Flask backend (intent_agent.py / orchestrator.py)    ║
-#   ║   Scores user intent, extracts entities (MS + Google), sharpens    ║
-#   ║   query focus. Never surfaces in the Orchestrate UI.               ║
-#   ╚══════════════════════════════════════════════════════════════════════╝
+#   ┌──────────────────────────────────────────────────────────────────────┐
+#   │  Agent 1 — Conversation Design Assistant (Entry Point)               │
+#   │  → Instructions: cda_agent_instructions.md                           │
+#   │  → Tools: microsoft_learn_search (MCP)                               │
+#   │           google_developer_search (MCP)                              │
+#   │  → Collaborator: ms_learn_article_writer (registered as a tool)      │
+#   │  → Job: detect query source, search MS Learn or Google Developers,   │
+#   │         present TOPICS: numbered cards                                │
+#   │  → On digit selection: call ms_learn_article_writer tool with title  │
+#   │  → Never generates article content itself                            │
+#   │  → SET as the Orchestration entry point                              │
+#   ├──────────────────────────────────────────────────────────────────────┤
+#   │  Agent 2 — MS Learn Article Writer (Collaborator)                    │
+#   │  → Instructions: article_writer_instructions.md                      │
+#   │  → Tools: microsoft_learn_search (MCP)                               │
+#   │           google_developer_search (MCP)                              │
+#   │  → Job: receive selected topic title, detect source (MS vs Google),  │
+#   │         fetch full article, return ARTICLE:                           │
+#   │  → Prefixes every response with ARTICLE: sentinel                    │
+#   │  → Ends every response with [See more: Title](url)                   │
+#   │  → Never renders navigation cards or option menus                    │
+#   │  → Do NOT set as Orchestration entry point                           │
+#   ├──────────────────────────────────────────────────────────────────────┤
+#   │  Backend (silent) — Intent Agent (Python)                            │
+#   │  → Runs in the Flask backend (intent_agent.py / orchestrator.py)    │
+#   │  → Scores user intent, extracts entities (MS + Google), sharpens    │
+#   │     query focus. Never surfaces in the Orchestrate UI.               │
+#   └──────────────────────────────────────────────────────────────────────┘
 #
 # UI sentinel routing (ui.html pre:receive):
-#   Case A: response_type == "options"  → native Watson options cards
+#   Case A: response_type == "options"  → native Watson options → cards
 #   Case B: text starts with "TOPICS:" → strip sentinel → parse as cards
-#   Case C: text starts with "ARTICLE:"→ strip sentinel → render as prose
-#   Case D: no sentinel                → pass through unchanged
+#   Case C: text starts with "ARTICLE:" → strip sentinel → render as prose
+#   Case D: no sentinel                 → pass through unchanged
 #
 # Deployment steps:
 #   0. Register MCP tools in Agent Builder (do this ONCE before creating agents):
 #      a. Open Agent Builder → Tools → Add tool → Import from JSON
-#      b. Import mslearn_mcp_tool.json  → registers "microsoft_learn_search"
+#      b. Import mslearn_mcp_tool.json          → registers "microsoft_learn_search"
 #      c. Import google_developer_mcp_tool.json → registers "google_developer_search"
-#   1. Agent Builder - Article Writer:
+#         (set x-goog-api-key header to your GOOGLE_API_KEY value)
+#   1. Agent Builder — Article Writer:
 #      a. Create agent: ms_learn_article_writer
 #      b. Paste article_writer_instructions.md (BEGIN/END markers)
 #      c. Bind tools: microsoft_learn_search AND google_developer_search
 #      d. Temperature: 0.1 | Max tokens: 1800
 #      e. Do NOT set as Orchestration entry point
-#   2. Agent Builder - CDA:
+#   2. Agent Builder — CDA:
 #      a. Create agent: conversation_design_assistant
 #      b. Paste cda_agent_instructions.md (BEGIN/END markers)
 #      c. Bind tools: microsoft_learn_search AND google_developer_search
 #      d. Add collaborator: ms_learn_article_writer (from step 1)
-#         - this registers it as a callable tool named "ms_learn_article_writer"
+#         — this registers it as a callable tool named "ms_learn_article_writer"
 #      e. Temperature: 0.2 | Max tokens: 600
 #      f. SET as the Orchestration entry point
 #      g. Publish → copy AGENT_ID and AGENT_ENV_ID
 #   3. app.py:
-#      a. Update AGENT_ID and AGENT_ENV_ID (lines 11-12) with CDA's IDs
+#      a. Update AGENT_ID and AGENT_ENV_ID (lines 11–12) with CDA's IDs
 #      b. Restart Flask → hard-reload browser (Ctrl+Shift+R)
 ##############################################################################
 
 # =============================================================================
-# AGENT 1 - Conversation Design Assistant (Entry Point)
+# AGENT 1 — Conversation Design Assistant (Entry Point)
 # =============================================================================
 agents:
   - name: conversation_design_assistant
@@ -76,12 +77,12 @@ agents:
       appropriate MCP tool (microsoft_learn_search or google_developer_search)
       to retrieve topic titles, and presents them as a TOPICS: numbered list
       (3 per batch, up to 9 total). When the user selects a topic by sending a
-      bare digit (1-9), calls the ms_learn_article_writer collaborator tool with
+      bare digit (1–9), calls the ms_learn_article_writer collaborator tool with
       the stored title. Never generates article content.
 
     llm:
       provider: watsonx_orchestrate
-      temperature: 0.2     # slightly higher - natural navigation phrasing
+      temperature: 0.2     # slightly higher — natural navigation phrasing
       max_tokens: 600      # card batches are short; no need for large output
 
     tools:
@@ -98,19 +99,19 @@ agents:
         description: >
           Retrieves topic titles and descriptions from Google Developer docs
           (Android, Firebase, GCP, Gemini, Maps, Workspace, Cloud Run, etc.).
-          Called once per new Google-related query or "more" navigation.
-          Not called for "back" (use session memory) or on digit selection
-          (Article Writer calls its own tool).
+          Requires TWO calls per navigation turn: first search_documents to get
+          parent values, then get_documents to get card titles and descriptions.
+          Not called for "back" (use session memory) or on digit selection.
         auto_invoke: true
-        max_calls_per_turn: 1
+        max_calls_per_turn: 2
 
       - name: ms_learn_article_writer
         description: >
           Collaborator agent. Called when the user selects a topic by sending
-          a bare digit (1-9). Receives the stored topic title as input and
+          a bare digit (1–9). Receives the stored topic title as input and
           returns the full ARTICLE: structured response. Works for both
-          Microsoft and Google topics - the Article Writer detects the source.
-        auto_invoke: false   # CDA decides when to call it - on digit selection only
+          Microsoft and Google topics — the Article Writer detects the source.
+        auto_invoke: false   # CDA decides when to call it — on digit selection only
 
     session:
       persist_context: true
@@ -126,7 +127,7 @@ agents:
         - topic_9_title
         - current_batch       # 1, 2, or 3
         - original_query      # stored for "more" re-queries
-        - query_source        # "microsoft" | "google" | "mixed" - set on first query
+        - query_source        # "microsoft" | "google" | "mixed" — set on first query
 
     entry_point: true
 
@@ -135,7 +136,7 @@ agents:
       Paste everything between the BEGIN / END delimiters into the Instructions field.
 
 # =============================================================================
-# AGENT 2 - MS Learn Article Writer (Collaborator)
+# AGENT 2 — MS Learn Article Writer (Collaborator)
 # =============================================================================
   - name: ms_learn_article_writer
     display_name: "MS Learn Article Writer"
@@ -151,7 +152,7 @@ agents:
 
     llm:
       provider: watsonx_orchestrate
-      temperature: 0.1     # low - factual, deterministic article content
+      temperature: 0.1     # low — factual, deterministic article content
       max_tokens: 1800     # covers 600-word prose + code blocks + tables
 
     tools:
@@ -175,7 +176,7 @@ agents:
       context_keys:
         - mcp_session_id            # reuse MS Learn MCP session across turns
         - google_mcp_session_id     # reuse Google MCP session across turns
-        - prior_source_urls         # normalised URLs already shown - for dedup
+        - prior_source_urls         # normalised URLs already shown — for dedup
 
     deduplication:
       sources:
@@ -194,9 +195,9 @@ agents:
       Paste everything between the BEGIN / END delimiters into the Instructions field.
 
 # =============================================================================
-# BACKEND (SILENT) - Intent Agent
+# BACKEND (SILENT) — Intent Agent
 # =============================================================================
-# Not an Orchestrate agent - runs in the Flask backend (intent_agent.py).
+# Not an Orchestrate agent — runs in the Flask backend (intent_agent.py).
 #
 # backend_component:
 #   name: intent_agent
@@ -214,13 +215,13 @@ agents:
 # =============================================================================
 # Both files live in this directory and are imported into Agent Builder once.
 #
-# mslearn_mcp_tool.json       - microsoft_learn_search tool (MS Learn endpoint)
-# google_developer_mcp_tool.json - google_developer_search tool (Google endpoint)
+# mslearn_mcp_tool.json            — microsoft_learn_search tool (MS Learn endpoint)
+# google_developer_mcp_tool.json   — google_developer_search tool (Google endpoint)
 
 # =============================================================================
 # ARCHIVED INSTRUCTION FILES (kept for rollback reference)
 # =============================================================================
 #
-# cda_instructions.md      - original Layer 1 CDA (deprecated, do not use)
-# system_instructions.md   - original Layer 2 Content Representation Agent (deprecated)
-# unified_instructions.md  - intermediate single-agent attempt (superseded)
+# cda_instructions.md      — original Layer 1 CDA (deprecated, do not use)
+# system_instructions.md   — original Layer 2 Content Representation Agent (deprecated)
+# unified_instructions.md  — intermediate single-agent attempt (superseded)
