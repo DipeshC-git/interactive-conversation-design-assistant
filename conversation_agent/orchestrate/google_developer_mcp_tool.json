@@ -8,7 +8,7 @@
       "transport": "streamable_http",
       "url": "https://developerknowledge.googleapis.com/mcp",
       "headers": {
-        "Authorization": "Bearer ${GOOGLE_DEVELOPER_MCP_TOKEN}"
+        "x-goog-api-key": "${GOOGLE_API_KEY}"
       },
       "timeout_ms": 30000,
       "auto_approve": [
@@ -19,13 +19,12 @@
     }
   },
   "authentication": {
-    "note": "This endpoint requires an OAuth 2.0 bearer token. In watsonx Orchestrate Agent Builder, set the Authorization header value to your Google OAuth2 access token when registering this tool. The token must have the https://www.googleapis.com/auth/cloud-platform scope or equivalent developer knowledge scope.",
-    "header_name": "Authorization",
-    "header_format": "Bearer <your-google-oauth2-access-token>",
-    "obtain_token": "Run: gcloud auth print-access-token  OR  use a service account key with the correct scope."
+    "method": "api_key",
+    "header": "x-goog-api-key",
+    "note": "Static Google API key — free, no expiry, no gcloud CLI. Get one at https://aistudio.google.com/apikey. In watsonx Orchestrate Agent Builder, set the x-goog-api-key header to your key when registering this tool. Store the same key as GOOGLE_API_KEY in your .env file for local testing."
   },
   "tool_call_pattern": {
-    "note": "Three-tool pattern. (1) search_documents: search by query, returns chunks with content, id, parent. (2) get_documents: fetch full doc by parent name, returns title, description, content (Markdown), uri. (3) answer_query: grounded synthesis with limited quota — fall back to search_documents on 429.",
+    "note": "Three-tool pattern. (1) search_documents: search by query, returns chunks with content, id, parent. (2) get_documents: fetch full doc by parent name, returns title, description, content (Markdown), uri. (3) answer_query: grounded synthesis — limited quota, fall back to search_documents on 429.",
     "step_1": "search_documents — { query: string } → { results: [{ content, id, parent }] }",
     "step_2": "get_documents   — { names: [parent] } → { documents: [{ name, title, description, content, uri }] }",
     "step_3": "answer_query    — { query: string } → { answerText, references: [name] }  (limited quota)"
