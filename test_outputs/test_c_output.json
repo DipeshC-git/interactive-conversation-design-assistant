@@ -1,48 +1,59 @@
 {
   "sessionId": "test-c",
-  "responseType": "answer",
-  "responseText": "Here's what we found about contoso, device.",
-  "format": "summary",
-  "content": "> **Insight:** Here's what we found for admins: # Reset device from Company Portal website\\n**Applies to**:\\n1. iOS/iPadOS\\n2. Windows\\nRemotely reset a used, lost, or stole See the full details below.\n\n\n## Summary \u2014 Contoso, Device\n\n{\"results\":[{\"title\":\"Reset device from Company Portal website\",\"content\":\"# Reset device from Company Portal website\\n**Applies to**:\\n1. iOS/iPadOS\\n2. Windows\\nRemotely reset a used, lost, or stolen device to factory default settings. A *reset* deletes all apps, settings, and personal data on the\n\n\n## Media\n\n![Diagram from wipe](https://learn.microsoft.com/intune/solutions/education/tutorial-school-deployment/media/reset-devices/retire.png)\n![Diagram from wipe](https://learn.microsoft.com/intune/media/icons/16/check.svg)\n\n## Sources\n\n- [https://learn.microsoft.com/intune/device-management/actions/wipe](https://learn.microsoft.com/intune/device-management/actions/wipe) \u2014 score: 1.00",
+  "responseType": "select",
+  "responseText": "Which of these best describes what you're looking for?",
+  "format": null,
+  "content": "",
   "interactiveOptions": [
     {
-      "id": "show_next",
-      "label": "Show me next",
-      "description": "See more results about contoso, device"
+      "id": "policy_lookup",
+      "label": "Look up Contoso policy",
+      "description": "Policy documents, compliance rules, procedures",
+      "queryFocus": "policy_lookup \u2014 contoso \u2014 Show me Contoso device reset policy"
     },
     {
-      "id": "doesnt_help",
-      "label": "This doesn't help",
-      "description": "Tell us this missed the mark on contoso, device and try a different angle"
-    }
-  ],
-  "sources": [
+      "id": "general_howto",
+      "label": "Step-by-step guide: Contoso",
+      "description": "Numbered steps, prerequisites, verification",
+      "queryFocus": "general_howto \u2014 contoso \u2014 Show me Contoso device reset policy"
+    },
     {
-      "file_path": "https://learn.microsoft.com/intune/device-management/actions/wipe",
-      "page_numbers": "",
-      "score": 1.0
+      "id": "concept_explain",
+      "label": "What is Contoso?",
+      "description": "Plain-language definition, how it works, when to use it",
+      "queryFocus": "concept_explain \u2014 contoso \u2014 Show me Contoso device reset policy"
+    },
+    {
+      "id": "code_request",
+      "label": "Get a Contoso code example",
+      "description": "Working code snippet with annotations",
+      "queryFocus": "code_request \u2014 contoso \u2014 Show me Contoso device reset policy"
+    },
+    {
+      "id": "troubleshoot",
+      "label": "Troubleshoot Contoso errors",
+      "description": "Error diagnosis, likely causes, fixes",
+      "queryFocus": "troubleshoot \u2014 contoso \u2014 Show me Contoso device reset policy"
     }
   ],
-  "confidence": "High",
-  "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJiZWUzOWUzNS0yMTVjLTQ3YmMtYmY4ZS1iMzMwOWY1NDQ3NzgifQ==",
-  "suggestedRefinements": [
-    "policy_lookup [contoso, device, reset] for admin step-by-step tutorial with code example",
-    "policy_lookup [contoso, device, reset] overview"
-  ],
+  "sources": [],
+  "confidence": "Low",
+  "mcpSessionId": null,
+  "suggestedRefinements": [],
   "routeToHumanReview": false,
   "estimatedReadTime": "1 min read",
   "validationReport": {
     "clarityScore": 5,
     "concisionScore": 5,
-    "accessibilityPass": false
+    "accessibilityPass": true
   },
   "_meta": {
     "test_id": "C",
     "iteration": 1,
-    "timestamp": "2026-07-20T22:18:42.424583+00:00",
-    "mcp_called": true,
-    "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJiZWUzOWUzNS0yMTVjLTQ3YmMtYmY4ZS1iMzMwOWY1NDQ3NzgifQ==",
-    "indexSize": 1,
+    "timestamp": "2026-08-02T14:31:36.230799+00:00",
+    "mcp_called": false,
+    "mcpSessionId": null,
+    "indexSize": 0,
     "mock_mode": "false"
   }
 }

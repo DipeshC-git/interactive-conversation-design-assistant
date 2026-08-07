@@ -1,5 +1,5 @@
 """
-Pydantic v2 data models for the Conversation Design Assistant.
+Pydantic v2 data models for Intently.
 All inter-agent boundaries and the public Input/Output contract are defined here.
 """
 from __future__ import annotations
@@ -51,6 +51,7 @@ class InteractiveOption(BaseModel):
     id: str
     label: str
     description: str
+    queryFocus: str = ""   # full retrieval signal — set on Layer 1 options only
 
     @field_validator("label")
     @classmethod

@@ -1,42 +1,59 @@
 {
   "sessionId": "test-a",
-  "responseType": "low_confidence",
-  "responseText": "We're still looking for the best answer about azure, azure ad. Try refining your search.",
-  "format": "code_snippet",
-  "content": "We couldn't find a confident answer about **azure, azure ad** yet.\n\nHere are some refined search approaches that might help:\n\n- configure_oauth [azure, azure ad, node.js] for developer step-by-step tutorial with code example\n- configure_oauth [azure, azure ad, overview",
+  "responseType": "select",
+  "responseText": "Which of these best describes what you're looking for?",
+  "format": null,
+  "content": "",
   "interactiveOptions": [
     {
-      "id": "show_next",
-      "label": "Show me next",
-      "description": "See more results about azure, azure ad"
+      "id": "configure_oauth",
+      "label": "Configure OAuth for Azure AD",
+      "description": "Configuration steps, client credentials, redirect URIs",
+      "queryFocus": "configure_oauth \u2014 oauth for azure ad \u2014 How do I configure OAuth 2.0 for Azure AD in Node.js?"
     },
     {
-      "id": "doesnt_help",
-      "label": "This doesn't help",
-      "description": "Tell us this missed the mark on azure, azure ad and try a different angle"
+      "id": "general_howto",
+      "label": "Step-by-step guide: OAuth for Azure AD",
+      "description": "Numbered steps, prerequisites, verification",
+      "queryFocus": "general_howto \u2014 oauth for azure ad \u2014 How do I configure OAuth 2.0 for Azure AD in Node.js?"
+    },
+    {
+      "id": "setup_auth",
+      "label": "Set up OAuth for Azure AD authentication",
+      "description": "Identity providers, protocols, SSO setup",
+      "queryFocus": "setup_auth \u2014 oauth for azure ad \u2014 How do I configure OAuth 2.0 for Azure AD in Node.js?"
+    },
+    {
+      "id": "code_request",
+      "label": "Get a OAuth for Azure AD code example",
+      "description": "Working code snippet with annotations",
+      "queryFocus": "code_request \u2014 oauth for azure ad \u2014 How do I configure OAuth 2.0 for Azure AD in Node.js?"
+    },
+    {
+      "id": "concept_explain",
+      "label": "What is OAuth for Azure AD?",
+      "description": "Plain-language definition, how it works, when to use it",
+      "queryFocus": "concept_explain \u2014 oauth for azure ad \u2014 How do I configure OAuth 2.0 for Azure AD in Node.js?"
     }
   ],
   "sources": [],
   "confidence": "Low",
-  "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJkZWQwZDliZi1iODMxLTQ1NWItOWE2Yi0yNDc3YzE5NTBiNzIifQ==",
-  "suggestedRefinements": [
-    "configure_oauth [azure, azure ad, node.js] for developer step-by-step tutorial with code example",
-    "configure_oauth [azure, azure ad, overview"
-  ],
-  "routeToHumanReview": true,
+  "mcpSessionId": null,
+  "suggestedRefinements": [],
+  "routeToHumanReview": false,
   "estimatedReadTime": "1 min read",
   "validationReport": {
-    "clarityScore": 4,
+    "clarityScore": 5,
     "concisionScore": 5,
-    "accessibilityPass": false
+    "accessibilityPass": true
   },
   "_meta": {
     "test_id": "A",
     "iteration": 1,
-    "timestamp": "2026-07-20T22:18:21.454227+00:00",
-    "mcp_called": true,
-    "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJkZWQwZDliZi1iODMxLTQ1NWItOWE2Yi0yNDc3YzE5NTBiNzIifQ==",
-    "indexSize": 2,
+    "timestamp": "2026-08-02T14:31:17.484151+00:00",
+    "mcp_called": false,
+    "mcpSessionId": null,
+    "indexSize": 0,
     "mock_mode": "false"
   }
 }

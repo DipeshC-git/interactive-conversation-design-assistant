@@ -33,15 +33,6 @@ conversation_agent/.env
 Thumbs.db
 desktop.ini
 
-# Installers — not needed in source control
-*.msi
-
-# Poppler binaries (bundled in bin/ for local Windows dev)
-# These are large binary files; uncomment the line below to exclude them.
-# To run on Windows without installing Poppler system-wide, keep bin/ tracked.
-# On macOS/Linux, install via: brew install poppler / apt install poppler-utils
-# bin/
-
 # Test / coverage artefacts
 .pytest_cache/
 .coverage
@@ -51,8 +42,16 @@ coverage.xml
 # Ruff / linting cache
 .ruff_cache/
 
-# Streamlit
-.streamlit/secrets.toml
-
 # Bob workspace internals — contains secrets (PAT)
 .bob/
+
+# Generated import files with real API keys baked in — never commit
+*.import.json
+
+# Node modules (google-mcp-proxy)
+node_modules/
+conversation_agent/orchestrate/google-mcp-proxy/node_modules/
+
+# Test / runtime output (generated files, not source)
+test_outputs/test_*.json
+validation/validation_report.json

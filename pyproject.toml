@@ -3,53 +3,43 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "autonomous-accessible-pdf-generator"
-version = "0.1.0"
-description = "Zero-intervention AI pipeline for generating PDF/UA and WCAG 2.2 compliant accessible PDFs."
+name = "intently"
+version = "1.0.0"
+description = "AI-powered multi-agent documentation retrieval and intelligent workflow orchestration system."
 requires-python = ">=3.11"
 readme = "README.md"
 
 dependencies = [
-    # PDF binary manipulation and structural tagging
-    "pymupdf>=1.24.0",
-
-    # PDF-to-image rendering (wraps poppler)
-    "pdf2image>=1.17.0",
-
-    # Image processing
-    "Pillow>=10.3.0",
-
-    # Async HTTP client for LLM API calls (with HTTP/2 support)
-    "httpx[http2]>=0.27.0",
+    # Async HTTP client for MCP and watsonx API calls
+    "httpx>=0.27.0",
 
     # Data validation and schema enforcement
     "pydantic>=2.7.0",
 
-    # Web framework — REST API + SSE streaming
+    # Web framework — REST API
     "fastapi>=0.111.0",
 
     # ASGI server
     "uvicorn[standard]>=0.29.0",
 
-    # Multipart file upload support
-    "python-multipart>=0.0.9",
+    # Conversation agent core deps
+    "requests>=2.32.0",
+    "python-dotenv>=1.0.0",
+    "numpy>=1.26.0",
 ]
 
 [project.optional-dependencies]
+# Install with: pip install -e ".[full]"
+full = [
+    "ibm-watsonx-ai>=1.1.0",
+    "faiss-cpu>=1.8.0",
+]
+
 # Install with: pip install -e ".[dev]"
 dev = [
     "pytest>=8.2.0",
     "pytest-asyncio>=0.23.0",
     "ruff>=0.4.0",
-]
-
-# Install with: pip install -e ".[conversation-agent]"
-conversation-agent = [
-    "ibm-watsonx-ai>=1.1.0",
-    "requests>=2.32.0",
-    "python-dotenv>=1.0.0",
-    "faiss-cpu>=1.8.0",
-    "numpy>=1.26.0",
 ]
 
 [tool.ruff]
@@ -59,8 +49,8 @@ select = ["E", "F", "W", "I", "UP"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests"]
+testpaths = ["test_outputs"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["*.py"]
+include = ["conversation_agent*"]

@@ -1,0 +1,24 @@
+{
+  "name": "@dipeshc/google-mcp-proxy",
+  "version": "1.0.0",
+  "description": "Local MCP proxy for Google Developer Knowledge — injects x-goog-api-key header. Usage: npx -y @dipeshc/google-mcp-proxy <YOUR_GOOGLE_API_KEY>",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "google-mcp-proxy": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.25.76"
+  },
+  "keywords": ["mcp", "google", "developer", "knowledge", "proxy", "watsonx", "orchestrate"],
+  "author": "DipeshC",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18"
+  }
+}

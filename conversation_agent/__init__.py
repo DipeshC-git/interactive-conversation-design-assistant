@@ -1,1 +1,1 @@
-# Conversation Design Assistant — multi-agent package
+# Intently — multi-agent package

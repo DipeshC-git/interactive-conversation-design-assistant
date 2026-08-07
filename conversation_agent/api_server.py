@@ -1,5 +1,5 @@
 """
-FastAPI HTTP Server — Conversation Design Assistant
+FastAPI HTTP Server — Intently
 
 Wraps WatsonxOrchestrator behind a REST API so the Carbon UI can call it.
 Serves the UI HTML at GET / and accepts:
@@ -41,10 +41,22 @@ from conversation_agent.orchestrator import WatsonxOrchestrator  # noqa: E402
 from conversation_agent.schemas import AgentInput, SessionStore   # noqa: E402
 
 # ---------------------------------------------------------------------------
-app = FastAPI(title="Conversation Design Assistant", version="1.0")
+# CORS — allow the Code Engine production URL and localhost for local dev.
+# Add any extra origins in the APP_EXTRA_ORIGINS env var (comma-separated).
+_PRODUCTION_URL = "https://cda-app.2d591frd9jfp.eu-de.codeengine.appdomain.cloud"
+_LOCAL_ORIGINS  = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:5001",
+    "http://127.0.0.1:5001",
+]
+_extra = [o.strip() for o in os.environ.get("APP_EXTRA_ORIGINS", "").split(",") if o.strip()]
+_ALLOWED_ORIGINS = [_PRODUCTION_URL] + _LOCAL_ORIGINS + _extra
+
+app = FastAPI(title="Intently", version="1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )

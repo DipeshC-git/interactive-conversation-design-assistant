@@ -159,7 +159,7 @@ def _clarify_output(session_id: str, intent_result: dict) -> AgentOutput:
 # ---------------------------------------------------------------------------
 
 class WatsonxOrchestrator:
-    """Single entry point for the full multi-agent Conversation Design Assistant."""
+    """Single entry point for the full multi-agent Intently pipeline."""
 
     def __init__(self) -> None:
         self._model = _init_watsonx_model()
@@ -203,6 +203,7 @@ class WatsonxOrchestrator:
                     id=o["id"],
                     label=_truncate_label(o["label"]),
                     description=o.get("hint", o["label"]),
+                    queryFocus=o.get("queryFocus", ""),
                 )
                 for o in intent_result.get("options", [])
             ]

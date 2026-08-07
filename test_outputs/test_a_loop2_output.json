@@ -1,42 +1,47 @@
 {
   "sessionId": "test-a",
-  "responseType": "low_confidence",
-  "responseText": "We're still looking for the best answer about azure, azure ad. Try refining your search.",
+  "responseType": "answer",
+  "responseText": "Refined result for: \"How do I configure OAuth 2.0 for Azure AD in Node.js\".",
   "format": "code_snippet",
-  "content": "We couldn't find a confident answer about **azure, azure ad** yet.\n\nHere are some refined search approaches that might help:\n\n- configure_oauth [azure, azure ad, node.js] \u2014 refining from: show_next for developer \u2014 alternative approach to: show_next step-by-step tutorial with code example\n- configure_oauth [azure, azure ad, overview",
-  "interactiveOptions": [
+  "content": "> *Showing result set 2 \u2014 refined for you*\n\n\n> **Insight:** ```javascript require('dotenv').config(); / Configuration object to be passed to MSAL instance on creation. For a full list of MSAL Node configuration parameters, visit: */ const msalConfig = { auth: { clientId: process.env.CLIENT_ID 'Enter_the_Application_Id_Here', // 'Application (client) ID' of a\n\n\n## Steps \u2014 How do I configure OAuth 2.0 for Azure AD in Node.js\n\n1. ```javascript\nrequire('dotenv').config();\r\n\r\n/**\r\n * Configuration object to be passed to MSAL instance on creation.\n2. * For a full list of MSAL Node configuration parameters, visit:\r\n * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md\r\n */    \r\nconst msalConfig = {\r\n    auth: {\r\n        clientId: process.env.CLIENT_ID || 'Enter_the_Application_Id_Here', // 'Application (client) ID' of app registration in Azure portal - this value is a GUID\r\n        authority: process.env.AUTHORITY || 'https://Enter_the_Tenant_Subdomain_Here.ciamlogin.com/', // Replace \"Enter_the_Tenant_Subdomain_Here\" with your tenant subdomain\r\n        clientSecret: process.env.CLIENT_SECRET || 'Enter_the_Client_Secret_Here', // Client secret generated from the app \r\n    },\r\n    system: {\r\n        loggerOptions: {\r\n            loggerCallback(loglevel, message, containsPii) {\r\n                console.log(message);\r\n            },\r\n            piiLoggingEnabled: false,\r\n            logLevel: 'Info',\r\n        },\r\n    },\r\n};    \r\nconst protectedResources = {\r\n    apiToDoList: {\r\n        endpoint: process.env.API_ENDPOINT || 'https://localhost:44351/api/to.\n3. # Set up OAuth 2.0 client credentials flow in Azure Active Directory B2C (b2c-user-flow)\n## Step 1: Register the web API app\n4.\n4. Copy the **Application ID URI**.\n5. The following screenshot shows how to copy the Application ID URI.\n6. ![Screenshot shows how to copy the application I D.](https://learn.microsoft.com/azure\n\n> *[Content truncated \u2014 see more via the link above]*",
+  "interactiveOptions": [],
+  "sources": [
     {
-      "id": "show_next",
-      "label": "Show me next",
-      "description": "See more results about azure, azure ad"
+      "file_path": "https://learn.microsoft.com/entra/identity-platform/tutorial-daemon-node-call-api-build-app#create-msal-configuration-object",
+      "page_numbers": "",
+      "score": 0.95
     },
     {
-      "id": "doesnt_help",
-      "label": "This doesn't help",
-      "description": "Tell us this missed the mark on azure, azure ad and try a different angle"
+      "file_path": "https://learn.microsoft.com/azure/active-directory-b2c/media/client-credentials-grant-flow/copy-application-id-uri.png",
+      "page_numbers": "",
+      "score": 0.95
+    },
+    {
+      "file_path": "https://learn.microsoft.com/azure/active-directory-b2c/tenant-management-read-tenant-name#get-your-tenant-name",
+      "page_numbers": "",
+      "score": 0.95
     }
   ],
-  "sources": [],
-  "confidence": "Low",
-  "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJkZWQwZDliZi1iODMxLTQ1NWItOWE2Yi0yNDc3YzE5NTBiNzIifQ==",
+  "confidence": "High",
+  "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiI4MWE2ZDQ5ZS1lNmQzLTQyMzMtOTAzYy0xNzEyYzgzZWFkYjYifQ==",
   "suggestedRefinements": [
-    "configure_oauth [azure, azure ad, node.js] \u2014 refining from: show_next for developer \u2014 alternative approach to: show_next step-by-step tutorial with code example",
-    "configure_oauth [azure, azure ad, overview"
+    "How do I configure OAuth 2.0 for Azure AD in Node.js step-by-step with code example",
+    "How do I configure OAuth overview and concepts"
   ],
-  "routeToHumanReview": true,
-  "estimatedReadTime": "1 min read",
+  "routeToHumanReview": false,
+  "estimatedReadTime": "2 min read",
   "validationReport": {
-    "clarityScore": 4,
-    "concisionScore": 5,
+    "clarityScore": 3,
+    "concisionScore": 0,
     "accessibilityPass": false
   },
   "_meta": {
     "test_id": "A",
     "iteration": 2,
-    "timestamp": "2026-07-20T22:18:32.162383+00:00",
+    "timestamp": "2026-08-02T14:31:36.225526+00:00",
     "mcp_called": true,
-    "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiJkZWQwZDliZi1iODMxLTQ1NWItOWE2Yi0yNDc3YzE5NTBiNzIifQ==",
-    "indexSize": 4,
+    "mcpSessionId": "eyJjbGllbnRJbmZvIjp7Im5hbWUiOiJDb252RGVzaWduQWdlbnQiLCJ0aXRsZSI6bnVsbCwidmVyc2lvbiI6IjEuMCIsImljb25zIjpudWxsLCJ3ZWJzaXRlVXJsIjpudWxsfSwidXNlcklkQ2xhaW0iOiI4MWE2ZDQ5ZS1lNmQzLTQyMzMtOTAzYy0xNzEyYzgzZWFkYjYifQ==",
+    "indexSize": 3,
     "mock_mode": "false"
   }
 }

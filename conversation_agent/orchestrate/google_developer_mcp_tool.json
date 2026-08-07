@@ -1,0 +1,61 @@
+{
+  "tool": {
+    "name": "google_developer_search",
+    "display_name": "Google Developer Knowledge",
+    "description": "Searches and retrieves official Google developer documentation, product guides, API references, code samples, and tutorials. Use this tool whenever the user asks a question about any Google technology - including Android, Firebase, Google Cloud (GCP), Gemini, Google Maps, Google Workspace, BigQuery, Cloud Run, Vertex AI, Flutter, Kotlin, Google Identity, Pub/Sub, TensorFlow, web.dev, or any developers.google.com or cloud.google.com content.",
+    "type": "mcp",
+    "mcp": {
+      "transport": "streamable_http",
+      "url": "https://developerknowledge.googleapis.com/mcp",
+      "headers": {
+        "x-goog-api-key": "${GOOGLE_API_KEY}"
+      },
+      "timeout_ms": 30000,
+      "auto_approve": [
+        "search_documents",
+        "answer_query",
+        "get_documents"
+      ]
+    }
+  },
+  "authentication": {
+    "method": "api_key",
+    "header": "x-goog-api-key",
+    "note": "IMPORTANT — watsonx Orchestrate Agent Builder does NOT interpolate ${GOOGLE_API_KEY} from .env. You must import google_developer_mcp_tool.import.json (not this file) into Agent Builder. That file has the real key baked in and is gitignored. Regenerate it by running: (Get-Content google_developer_mcp_tool.json -Raw) -replace '\\$\\{GOOGLE_API_KEY\\}', '<your-key>' | Set-Content google_developer_mcp_tool.import.json"
+  },
+  "tool_call_pattern": {
+    "note": "Three-tool pattern. (1) search_documents: search by query, returns chunks with content, id, parent. (2) get_documents: fetch full doc by parent name, returns title, description, content (Markdown), uri. (3) answer_query: grounded synthesis - limited quota, fall back to search_documents on 429.",
+    "step_1": "search_documents - { query: string }  { results: [{ content, id, parent }] }",
+    "step_2": "get_documents   - { names: [parent] }  { documents: [{ name, title, description, content, uri }] }",
+    "step_3": "answer_query    - { query: string }  { answerText, references: [name] }  (limited quota)"
+  },
+  "tool_routing": {
+    "invoke_when": [
+      "User asks how to configure, set up, or use any Google product or service",
+      "User asks what a Google technology is or how it works",
+      "User asks for code examples related to any Google SDK, API, or library",
+      "User asks about Android, Firebase, Google Cloud, Gemini, Google Maps, Google Workspace, BigQuery, Cloud Run, Vertex AI, Flutter, Kotlin, TensorFlow, or web.dev",
+      "User asks about Google Identity, OAuth with Google, Google Sign-In, or Firebase Authentication",
+      "User asks a follow-up question that requires additional Google developer documentation"
+    ],
+    "do_not_invoke_when": [
+      "The user question is purely about a Microsoft or non-Google technology",
+      "The retrieved content from the current session already covers the follow-up question"
+    ]
+  },
+  "session_management": {
+    "reuse_session": true,
+    "session_id_context_key": "google_mcp_session_id"
+  },
+  "deduplication": {
+    "strategy": "url_normalise_then_dedupe"
+  },
+  "result_handling": {
+    "max_results_to_pass": 3,
+    "pass_to_agent_as": "retrieved_content",
+    "fields_to_include": ["title", "uri", "content", "description"],
+    "source_rendering": {
+      "mode": "closing_line_only"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 """
-Validation Script — Conversation Design Assistant
+Validation Script — Intently
 
 Reads all test output JSON files from test_outputs/ (excludes baseline_*),
 validates each against the schema and accessibility rules, writes

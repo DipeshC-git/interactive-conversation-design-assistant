@@ -1,5 +1,5 @@
 """
-Launch the Conversation Design Assistant UI.
+Launch the Intently UI.
 
 Starts the FastAPI server on port 8000 and opens the browser automatically.
 Run with:
@@ -33,7 +33,7 @@ if env_path.exists():
 mock = os.environ.get("MOCK_MODE", "true").lower()
 print(f"""
 ╔══════════════════════════════════════════════════════════════╗
-║     Conversation Design Assistant                            ║
+║     Intently — Conversation Precision by Design               ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Root      : {str(ROOT)[:52]}
 ║  Mode      : {"MOCK (no live API calls)" if mock == "true" else "LIVE (MS Learn MCP + watsonx.ai)"}

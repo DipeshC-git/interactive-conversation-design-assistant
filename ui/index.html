@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Conversation Design Assistant</title>
+  <title>Intently — Conversation Precision by Design</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" />
   <style>
     /* ── Carbon Design System tokens (Gray 100 theme) ── */
@@ -677,11 +677,11 @@
 
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ HEADER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 <header class="cds--header" role="banner">
-  <a class="cds--header__name" href="#" aria-label="Conversation Design Assistant home">
+  <a class="cds--header__name" href="#" aria-label="Intently home">
     <div class="cds--header__logo" aria-hidden="true">
       <svg viewBox="0 0 16 16"><path d="M8 1L1 4.5v7L8 15l7-3.5v-7L8 1zm0 1.8l5 2.5v5.6l-5 2.5-5-2.5V5.3l5-2.5z"/></svg>
     </div>
-    Conversation Design Assistant
+    Intently
   </a>
 
   <nav class="cds--header__nav" aria-label="Application navigation">
@@ -1096,11 +1096,14 @@ function renderL1(data, originalQuery) {
   // Build tiles HTML
   const tilesHtml = opts.map((opt, i) => {
     const num = ['01','02','03','04','05'][i] || String(i+1);
+    // queryFocus carries the full retrieval signal: "intent — entity — full query"
+    // Fall back to description (hint) only if queryFocus is absent.
+    const qf = opt.queryFocus || opt.description || opt.label;
     return `<button
       class="cds--tile-option"
       data-opt-id="${esc(opt.id)}"
       data-opt-label="${esc(opt.label)}"
-      data-query-focus="${esc(opt.description||opt.label)}"
+      data-query-focus="${esc(qf)}"
       aria-label="Select: ${esc(opt.label)}"
     >
       <span class="tile-option__num">${num}</span>

@@ -124,16 +124,199 @@ _MOCK_CHUNKS: dict[str, list[dict]] = {
             "links": ["https://learn.microsoft.com/en-us/mem/intune/remote-actions/devices-wipe"],
         },
     ],
+    "code_request": [
+        {
+            "chunk_id": "code-msal-001",
+            "file_path": "azure/active-directory/develop/scenario-web-app-sign-user-app-registration.md",
+            "page_numbers": "1-2",
+            "text": (
+                "Use MSAL (Microsoft Authentication Library) to acquire tokens in your application. "
+                "For Python, install msal via pip. Initialise PublicClientApplication with your "
+                "client_id and authority. Call acquire_token_interactive() for user sign-in flows "
+                "or acquire_token_by_username_password() for automation. Store the returned access "
+                "token and use it in the Authorization header of your API requests."
+            ),
+            "snippet": "MSAL Python — acquire tokens for Azure AD.",
+            "score": 0.88,
+            "images": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-python-token-cache"],
+            "code_blocks": [
+                '```python\nimport msal\n\napp = msal.PublicClientApplication(\n    client_id="YOUR_CLIENT_ID",\n    authority="https://login.microsoftonline.com/YOUR_TENANT_ID"\n)\n\nresult = app.acquire_token_interactive(scopes=["User.Read"])\nif "access_token" in result:\n    access_token = result["access_token"]\n    # Use token in Authorization header\n    headers = {"Authorization": f"Bearer {access_token}"}\n```',
+            ],
+        },
+        {
+            "chunk_id": "code-msal-002",
+            "file_path": "azure/active-directory/develop/quickstart-v2-python-daemon.md",
+            "page_numbers": "2-3",
+            "text": (
+                "For daemon or service applications without a user, use the client credentials flow. "
+                "Create a ConfidentialClientApplication with your client_id and client_credential "
+                "(client_secret or certificate). Call acquire_token_for_client() with the target scope. "
+                "Never store client secrets in source code — use environment variables or a key vault."
+            ),
+            "snippet": "Client credentials flow with MSAL Python for daemon apps.",
+            "score": 0.82,
+            "images": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-v2-python-daemon"],
+            "code_blocks": [
+                '```python\nimport msal\n\napp = msal.ConfidentialClientApplication(\n    client_id="YOUR_CLIENT_ID",\n    authority="https://login.microsoftonline.com/YOUR_TENANT_ID",\n    client_credential="YOUR_CLIENT_SECRET"  # store in env var\n)\n\nresult = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])\n```',
+            ],
+        },
+    ],
+    "general_howto": [
+        {
+            "chunk_id": "howto-entra-001",
+            "file_path": "azure/active-directory/develop/quickstart-register-app.md",
+            "page_numbers": "1-3",
+            "text": (
+                "To register an application in Microsoft Entra ID (formerly Azure Active Directory), "
+                "sign in to the Azure portal and navigate to Microsoft Entra ID > App registrations > "
+                "New registration. Enter your application name, select the supported account types "
+                "(single tenant or multi-tenant), and set a redirect URI matching your application. "
+                "After registration, copy the Application (client) ID and the Directory (tenant) ID — "
+                "you will need both when configuring your authentication library."
+            ),
+            "snippet": "Register an app in Microsoft Entra ID — step-by-step.",
+            "score": 0.86,
+            "images": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app"],
+        },
+        {
+            "chunk_id": "howto-entra-002",
+            "file_path": "azure/active-directory/develop/howto-create-service-principal-portal.md",
+            "page_numbers": "1-2",
+            "text": (
+                "After registering your app, add API permissions under the 'API permissions' blade. "
+                "Select Microsoft Graph and choose delegated or application permissions depending on "
+                "your scenario. For delegated permissions, the signed-in user must grant consent. "
+                "For application permissions, an administrator must grant tenant-wide admin consent. "
+                "Grant admin consent by clicking 'Grant admin consent for [your tenant]'."
+            ),
+            "snippet": "Add and grant API permissions in Entra ID app registration.",
+            "score": 0.79,
+            "images": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal"],
+        },
+    ],
+    "concept_explain": [
+        {
+            "chunk_id": "concept-oauth-001",
+            "file_path": "azure/active-directory/develop/authentication-vs-authorization.md",
+            "page_numbers": "1",
+            "text": (
+                "OAuth 2.0 is an industry-standard authorization framework that allows third-party "
+                "applications to obtain limited access to a user's account. It works by delegating "
+                "user authentication to the service that hosts the user account and authorizing "
+                "third-party applications to access that account. OAuth 2.0 defines four roles: "
+                "resource owner (user), client (application), authorization server, and resource server. "
+                "The authorization code flow is the most secure and recommended for web applications."
+            ),
+            "snippet": "OAuth 2.0 — roles, flows, and how it works.",
+            "score": 0.90,
+            "images": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow"],
+        },
+        {
+            "chunk_id": "concept-oidc-001",
+            "file_path": "azure/active-directory/develop/v2-protocols-oidc.md",
+            "page_numbers": "1",
+            "text": (
+                "OpenID Connect (OIDC) is an identity layer built on top of OAuth 2.0. "
+                "While OAuth 2.0 handles authorization, OIDC adds authentication — it lets "
+                "applications verify the identity of a user and obtain basic profile information. "
+                "OIDC introduces the ID token (a JWT) alongside the access token. "
+                "Use OIDC when your application needs to know who the user is, not just whether "
+                "they have access to a resource."
+            ),
+            "snippet": "OpenID Connect (OIDC) vs OAuth 2.0 — what each one does.",
+            "score": 0.84,
+            "images": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc"],
+        },
+        {
+            "chunk_id": "concept-token-001",
+            "file_path": "azure/active-directory/develop/access-tokens.md",
+            "page_numbers": "1-2",
+            "text": (
+                "An access token is a short-lived credential (typically 60–90 minutes) that the "
+                "client application presents to resource servers to prove it has been authorized. "
+                "Microsoft identity platform issues access tokens as JWTs (JSON Web Tokens). "
+                "A refresh token is a long-lived credential used to obtain new access tokens without "
+                "requiring the user to sign in again. Store refresh tokens securely and never expose "
+                "them to the browser."
+            ),
+            "snippet": "Access tokens, refresh tokens, and ID tokens explained.",
+            "score": 0.80,
+            "images": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/access-tokens"],
+        },
+    ],
+    "troubleshoot": [
+        {
+            "chunk_id": "ts-401-001",
+            "file_path": "azure/active-directory/develop/reference-error-codes.md",
+            "page_numbers": "1-2",
+            "text": (
+                "A 401 Unauthorized error means the server rejected the credentials in the request. "
+                "Common causes: (1) The access token has expired — acquire a new token using the "
+                "refresh token. (2) The token audience ('aud' claim) does not match the API's expected "
+                "audience. (3) The Authorization header is malformed — ensure the format is "
+                "'Bearer <token>' with a single space. (4) The token was issued for a different "
+                "tenant — verify the tenant ID in the authority URL."
+            ),
+            "snippet": "Troubleshoot 401 Unauthorized errors in Microsoft identity platform.",
+            "score": 0.89,
+            "images": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/reference-error-codes"],
+        },
+        {
+            "chunk_id": "ts-403-001",
+            "file_path": "azure/active-directory/develop/troubleshoot-authorization.md",
+            "page_numbers": "2-3",
+            "text": (
+                "A 403 Forbidden error means the token is valid but the application does not have "
+                "permission to perform the requested operation. Check: (1) The required API permissions "
+                "are added in the app registration. (2) Admin consent has been granted for application "
+                "permissions. (3) The signed-in user has the required role or group membership. "
+                "Use the Microsoft Graph permissions reference to find the minimum required scope."
+            ),
+            "snippet": "Troubleshoot 403 Forbidden — permissions and admin consent.",
+            "score": 0.83,
+            "images": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/troubleshoot-authorization"],
+        },
+        {
+            "chunk_id": "ts-aadsts-001",
+            "file_path": "azure/active-directory/develop/reference-aadsts-error-codes.md",
+            "page_numbers": "1",
+            "text": (
+                "AADSTS error codes are returned in the error_description field of a failed token "
+                "request. Common codes: AADSTS70011 — invalid scope; check the 'scope' parameter. "
+                "AADSTS50011 — redirect URI mismatch; ensure the URI in your request matches exactly "
+                "what is registered. AADSTS65001 — user or admin has not consented; trigger the "
+                "consent flow or request admin consent. AADSTS700016 — app not found in directory."
+            ),
+            "snippet": "AADSTS error codes reference — decode and fix token errors.",
+            "score": 0.77,
+            "images": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/reference-aadsts-error-codes"],
+        },
+    ],
     "default": [
         {
             "chunk_id": "general-001",
-            "file_path": "microsoft-365/general/getting-started.md",
+            "file_path": "azure/active-directory/develop/index.yml",
             "page_numbers": "1",
-            "text": "Microsoft Learn provides documentation, training, and certifications for all Microsoft products.",
-            "snippet": "Microsoft Learn getting started.",
-            "score": 0.38,
+            "text": (
+                "Microsoft identity platform is a cloud identity service that provides authentication "
+                "and authorization for applications. It supports industry-standard protocols including "
+                "OAuth 2.0, OpenID Connect, and SAML 2.0. Use the Microsoft Authentication Library "
+                "(MSAL) to integrate sign-in and token acquisition into your application."
+            ),
+            "snippet": "Microsoft identity platform overview.",
+            "score": 0.65,
             "images": [],
-            "links": [],
+            "links": ["https://learn.microsoft.com/en-us/azure/active-directory/develop/"],
         },
     ],
 }
@@ -141,7 +324,15 @@ _MOCK_CHUNKS: dict[str, list[dict]] = {
 
 def _mock_chunks(intent: str, iteration: int) -> list[dict]:
     """Return mock MCP hits for a given intent, varying slightly per iteration."""
-    base = _MOCK_CHUNKS.get(intent, _MOCK_CHUNKS["default"])
+    # Try exact match first, then prefix match (e.g. "code_request" matches "code_request")
+    base = _MOCK_CHUNKS.get(intent)
+    if base is None:
+        for key in _MOCK_CHUNKS:
+            if key != "default" and (intent.startswith(key) or key.startswith(intent)):
+                base = _MOCK_CHUNKS[key]
+                break
+    if base is None:
+        base = _MOCK_CHUNKS["default"]
     if iteration > 0:
         # On re-entry, nudge scores slightly higher to simulate refinement gain
         base = [{**c, "score": min(c["score"] + 0.04 * iteration, 0.99)} for c in base]

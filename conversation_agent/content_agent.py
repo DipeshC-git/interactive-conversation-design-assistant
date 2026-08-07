@@ -187,11 +187,15 @@ def _synthesize_content(
     # Plain-language insight from retrieved content
     parts.append(f"> **Insight:** {watsonx_summary}\n")
 
-    # Structured content body
-    if fmt == "steps":
+    # Structured content body — DITA type chosen by intent or format preference
+    if fmt == "steps" or intent in ("setup_auth", "general_howto", "configure_oauth"):
         parts.append(_build_steps(selected, topic))
-    elif fmt == "code_snippet":
+    elif fmt == "code_snippet" or intent == "code_request":
         parts.append(_build_code_snippet(selected, intent, entities))
+    elif intent == "concept_explain":
+        parts.append(_build_concept(selected, topic))
+    elif intent == "troubleshoot":
+        parts.append(_build_troubleshoot(selected, topic))
     elif fmt == "faq":
         parts.append(_build_faq(selected, topic))
     else:
@@ -264,19 +268,27 @@ def _build_code_snippet(selected: list[dict], intent: str, entities: list[str]) 
     """
     Build a code section.
     Priority:
-      1. Extract a real code block from MCP-returned text.
-      2. If the MCP text contains no fenced block, build a minimal annotated
-         example using the actual MCP content as context comments.
+      1. Pre-extracted code_blocks field (mock data).
+      2. Fenced block found inside chunk text (live MCP).
+      3. Synthesised minimal annotated example.
     """
     lines = ["## Code Example", ""]
 
-    # 1 — look for a real fenced code block in any selected chunk
+    # 1 — pre-extracted code_blocks field (used in mock data)
     found_code = None
     for chunk in selected:
-        blocks = _extract_code_blocks(chunk.get("text", ""))
-        if blocks:
-            found_code = blocks[0]
+        pre = chunk.get("code_blocks") or []
+        if pre:
+            found_code = pre[0]
             break
+
+    # 2 — look for a real fenced code block inside chunk text
+    if not found_code:
+        for chunk in selected:
+            blocks = _extract_code_blocks(chunk.get("text", ""))
+            if blocks:
+                found_code = blocks[0]
+                break
 
     if found_code:
         lines.append(found_code)
@@ -337,6 +349,80 @@ def _build_code_snippet(selected: list[dict], intent: str, entities: list[str]) 
     return "\n".join(lines)
 
 
+def _build_concept(selected: list[dict], topic: str) -> str:
+    """DITA CONCEPT type — what it is, how it works, key terms, when to use."""
+    import re as _re
+    short = " ".join(topic.split()[:6])
+    lines = [f"## What is {short}?", ""]
+
+    if selected:
+        first = selected[0].get("text", "").strip()
+        sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", first) if len(s.strip()) > 10]
+        one_line = sentences[0] if sentences else first[:160]
+        lines.append(f"> **In one sentence:** {one_line}")
+        lines.append("")
+        lines.append("### How it works")
+        para_sents = sentences[1:5] if len(sentences) > 1 else sentences
+        lines.append(" ".join(para_sents))
+        lines.append("")
+
+    if len(selected) > 1:
+        lines.append("### Key terms")
+        lines.append("| Term | Definition |")
+        lines.append("|---|---|")
+        for chunk in selected[1:3]:
+            text = chunk.get("text", "").strip()
+            sents = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", text) if len(s.strip()) > 10]
+            # Use the snippet as the term name; first sentence as definition
+            term  = chunk.get("snippet", "")[:60].split("—")[0].strip()
+            defn  = sents[0][:120] if sents else text[:120]
+            if term and defn:
+                lines.append(f"| {term} | {defn} |")
+        lines.append("")
+
+    lines.append("### When to use it")
+    lines.append("- When your application needs to verify the identity of a user.")
+    lines.append("- When you need to delegate access to a protected resource without sharing credentials.")
+    lines.append("- When integrating with Microsoft identity platform, Azure AD, or Entra ID.")
+
+    return "\n".join(lines)
+
+
+def _build_troubleshoot(selected: list[dict], topic: str) -> str:
+    """DITA REFERENCE type — symptom/cause/fix troubleshooting table."""
+    import re as _re
+    lines = [f"## Troubleshoot — {topic}", ""]
+
+    lines.append("### Symptom / Cause / Fix")
+    lines.append("| Symptom | Likely cause | Fix |")
+    lines.append("|---|---|---|")
+
+    for chunk in selected[:3]:
+        text = chunk.get("text", "").strip()
+        snippet = chunk.get("snippet", "")
+        sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", text) if len(s.strip()) > 15]
+        if not sentences:
+            continue
+        # Extract symptom from snippet, cause + fix from text sentences
+        symptom = snippet.split("—")[0].strip() if "—" in snippet else sentences[0][:80]
+        cause   = sentences[1][:100] if len(sentences) > 1 else "See documentation."
+        fix     = sentences[2][:100] if len(sentences) > 2 else sentences[-1][:100]
+        symptom = symptom.rstrip(".")
+        cause   = cause.rstrip(".")
+        fix     = fix.rstrip(".")
+        lines.append(f"| {symptom} | {cause} | {fix} |")
+
+    lines.append("")
+    lines.append("### General debugging steps")
+    lines.append("1. Inspect the full error response body — the `error_description` field contains the AADSTS code.")
+    lines.append("2. Verify your app registration: redirect URI, client ID, and tenant ID.")
+    lines.append("3. Confirm required API permissions are added and admin consent granted.")
+    lines.append("4. Check token expiry — access tokens expire after 60–90 minutes.")
+    lines.append("5. Test the token using the [Microsoft JWT decoder](https://jwt.ms) to inspect claims.")
+
+    return "\n".join(lines)
+
+
 def _build_faq(selected: list[dict], topic: str) -> str:
     """
     Build an FAQ from the actual MCP content.
@@ -351,7 +437,6 @@ def _build_faq(selected: list[dict], topic: str) -> str:
     ]
     for i, chunk in enumerate(selected[:3]):
         text = chunk.get("text", "").strip()
-        # Use first 2 sentences of the chunk as the answer
         sentences = [s.strip() for s in _re.split(r"(?<=[.!?])\s+", text) if len(s.strip()) > 10]
         answer = " ".join(sentences[:2]) if sentences else text[:200]
         q = q_templates[i % len(q_templates)].format(topic=topic)

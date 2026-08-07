@@ -1,5 +1,5 @@
 """
-Test Runner — Conversation Design Assistant
+Test Runner — Intently
 
 Runs Test A (+ loop iteration), Test B, Test C through the full orchestrator.
 Saves JSON outputs to test_outputs/. Prints a summary table.
