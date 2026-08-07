@@ -44,14 +44,14 @@ The architectural pattern — intent recognition → context selection → typed
 
 ```
 User Query
-    │
-    ▼
-POST /chat → Intent Agent → Layer 1 options (responseType: "select")
-    │
-    ▼ User selects one option
-POST /select → Retrieval Agent → Content Agent → Layer 2 content (responseType: "answer")
-    │
-    ▼ "See more" link in content body
+    â”‚
+    â–¼
+POST /chat â†’ Intent Agent â†’ Layer 1 options (responseType: "select")
+    â”‚
+    â–¼ User selects one option
+POST /select â†’ Retrieval Agent â†’ Content Agent â†’ Layer 2 content (responseType: "answer")
+    â”‚
+    â–¼ "See more" link in content body
 Opens primary MS Learn article in new tab
 ```
 
@@ -202,7 +202,7 @@ cd interactive-conversation-design-assistant
 python -m pip install fastapi uvicorn httpx numpy pydantic requests python-dotenv
 
 cp conversation_agent/.env.example conversation_agent/.env
-# MOCK_MODE=true by default — no credentials needed
+# MOCK_MODE=true by default â€” no credentials needed
 
 python launch.py
 # Or: python -m uvicorn conversation_agent.api_server:app --port 8000
