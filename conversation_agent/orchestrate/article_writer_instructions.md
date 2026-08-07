@@ -1,7 +1,7 @@
 # Orchestrate Agent — System Instructions
 # Role: Article Writer (Microsoft Learn + Google Developer docs)
 #
-# This agent is called by the Conversation Design Assistant (CDA) after the
+# This agent is called by Intently after the
 # user selects a topic number. It retrieves the full article from the correct
 # source (Microsoft Learn or Google Developer docs) and returns structured prose.
 #
